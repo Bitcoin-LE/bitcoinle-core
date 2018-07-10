@@ -77,6 +77,7 @@ bool fCheckBlockIndex = false;
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 size_t nCoinCacheUsage = 5000 * 300;
 uint64_t nDiffBitsIgnore = 50100;
+uint64_t clockRelaxationTimeMs = 30; // 30 seconds
 uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
@@ -2941,7 +2942,7 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
 bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, const CChainParams& params, int64_t nAdjustedTime)
 {
 	// Note: discarding metronomes that were created with timestamps in the future
-	if (blockTime > GetAdjustedTime()) {
+	if (blockTime > GetAdjustedTime() + clockRelaxationTimeMs) {
 		printf("Failed to accept block... Blocktime > GetAdjustedTime()\n");
 		// TODO: blacklist the beat and discard if future check works but the beat had already been blacklisted
 		return false;
@@ -2963,7 +2964,7 @@ bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, c
 		return false;
 	}
 
-	if (beat->blockTime < blockTime) {
+	if (beat->blockTime < blockTime - clockRelaxationTimeMs) {
 		// printf("1) %d - %d\n", beat->blockTime, blockTime);
 		//printf("Failed to accept block... Metronome < BlockTime %d - %d\n", beat->blockTime, blockTime);
 		return false;

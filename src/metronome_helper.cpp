@@ -30,7 +30,7 @@ using namespace Metronome;
 
 static const char DEFAULT_METRONOME_ADDR[] = "127.0.0.1";
 static const int DEFAULT_METRONOME_PORT = 8332;
-static const int DEFAULT_HTTP_CLIENT_TIMEOUT = 900;
+static const int DEFAULT_HTTP_CLIENT_TIMEOUT = 9000;
 static const bool DEFAULT_NAMED = false;
 static const int CONTINUE_EXECUTION = -1;
 static const int MAX_RETRIES = 3;

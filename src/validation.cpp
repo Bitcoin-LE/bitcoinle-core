@@ -2943,8 +2943,7 @@ bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, c
 {
 	// Note: discarding metronomes that were created with timestamps in the future
 	if (blockTime > nAdjustedTime + clockRelaxationTime) {
-		printf("Failed to accept block... Blocktime > GetAdjustedTime()\n");
-		// TODO: blacklist the beat and discard if future check works but the beat had already been blacklisted
+		LogPrintf("Failed to accept block... Blocktime > GetAdjustedTime()\n");
 		return false;
 	}
 
@@ -2960,7 +2959,7 @@ bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, c
 	std::shared_ptr<Metronome::CMetronomeBeat> beat = Metronome::CMetronomeHelper::GetMetronomeBeat(metronomeHash);
 
 	if (!beat) {
-		printf("Failed to accept block... Metronome hash not found %s\n", metronomeHash.GetHex().c_str());
+		LogPrintf("Failed to accept block... Metronome hash not found %s\n", metronomeHash.GetHex().c_str());
 		return false;
 	}
 

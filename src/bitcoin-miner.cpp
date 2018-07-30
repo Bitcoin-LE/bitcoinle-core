@@ -97,6 +97,12 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 	CBlock& block = pblocktemplate->block;
 
 	printf("Block difficulty nBits: %x \n", block.nBits);
+
+	arith_uint256 bnTarget;
+	bool fNegative, fOverflow;
+	bnTarget.SetCompact(block.nBits, &fNegative, &fOverflow);
+	printf("Target Hash: %s\n", bnTarget.GetHex().c_str());
+
 	// Replace mempool-selected txns with just coinbase plus passed-in txns:
 	//block.vtx.resize(1);
 	//for (const CMutableTransaction& tx : txns)
@@ -183,7 +189,9 @@ void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, M
 		}
 
 		if (chainActive.Tip()->GetBlockHash().GetHex() != block.hashPrevBlock.GetHex()) {
-			printf("Someone else mined a block! Restarting...\n");
+			if (idx == 0) {
+				printf("Someone else mined a block! Restarting...\n");
+			}
 			block.SetNull();
 			break;
 		}
@@ -225,7 +233,7 @@ void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, M
 	std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(block);
 	bool success = ProcessNewBlock(chainparams, shared_pblock, true, nullptr);
 
-	printf("Ending... Block accepted? %s...\n", success ? "true" : "false");
+	printf("Ending... Block accepted? %s.\n", success ? "Yes" : "No");
 	//MilliSleep(10000);
 }
 

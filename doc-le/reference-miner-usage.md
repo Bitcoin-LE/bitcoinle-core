@@ -4,7 +4,9 @@ This tutorial is a step-by-step guide to use the reference Bitcoin LE miner.
 
 ## Miner Location
 
-The reference miner is available in the zip file provided in the release. To start the miner, all needed is to run the executable called *bitcoinle-miner*. When no command line arguments are provided, then Bitcoin LE defaults apply. This means that when the miner submits a valid block, the coinbase transacation will be pointing to an address in the wallet already configured in your system.
+The reference miner is available in the zip file provided in the release. To start the miner, all needed is to run the executable called *bitcoinle-miner*. When no command line arguments are provided, then Bitcoin LE defaults apply. However, if your Bitcoin LE installation is not default (for instance you installed the binaries in a different folder), then do not forget to pass corresponding command-line arguments. For example, to point the miner to the correct installation directory, use the -datadir argument. 
+
+When the miner submits a valid block, the coinbase transacation will be pointing to an address in the wallet already configured in your system.
 
 ## Miner Logs
 

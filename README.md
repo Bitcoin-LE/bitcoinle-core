@@ -13,8 +13,8 @@ out collectively by the network. Bitcoin LE inherits most of its features from B
 software which enables the use of this currency.
 
 For more information, as well as an immediately useable, binary version of
-the Bitcoin LE Core software, see https://bitcoinle.org/en/download, or read the
-[original whitepaper](https://bitcoincore.org/bitcoin.pdf).
+the Bitcoin LE Core software, see [here](../../releases), or read the
+[original whitepaper](whitepaper/README.md).
 
 License
 -------

@@ -63,6 +63,35 @@
         </property>
       </widget>
     </item>
+    <item>
+      <widget class="QLabel" name="lblExplanation2">
+        <property name="textInteractionFlags">
+          <enum>Qt::LinksAccessibleByMouse</enum>
+        </property>
+        <property name="openExternalLinks">
+          <bool>true</bool>
+        </property>
+        <property name="text">
+          <string>Setting up your own metronome is preferable, however if you do NOT want to do it, pick a public one from this list:</string>
+        </property>
+        <property name="wordWrap">
+          <bool>true</bool>
+        </property>
+      </widget>
+    </item>
+    <item>
+      <widget class="QLabel" name="lblExplanation3">
+        <property name="textInteractionFlags">
+          <enum>Qt::TextSelectableByMouse</enum>
+        </property>
+        <property name="text">
+          <string>bitcoinle.org/#/metronomes</string>
+        </property>
+        <property name="wordWrap">
+          <bool>true</bool>
+        </property>
+      </widget>
+    </item>
    <item>
     <widget class="QLabel" name="metronomeCustom">
      <property name="styleSheet">

@@ -2956,8 +2956,17 @@ bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, c
 	//	return false;
 	//}
 
-	std::shared_ptr<Metronome::CMetronomeBeat> beat = Metronome::CMetronomeHelper::GetMetronomeBeat(metronomeHash);
-
+	std::shared_ptr<Metronome::CMetronomeBeat> beat; 
+	int attemptCounter = 0;
+	int MAX_ATTEMPTS = 10;
+	do {
+		if (attemptCounter > 0) {
+			MilliSleep(5000);
+		}
+		beat = Metronome::CMetronomeHelper::GetMetronomeBeat(metronomeHash);
+		attemptCounter++;
+	} while (!beat && attemptCounter < MAX_ATTEMPTS);
+	
 	if (!beat) {
 		LogPrintf("Failed to accept block... Metronome hash not found %s\n", metronomeHash.GetHex().c_str());
 		return false;

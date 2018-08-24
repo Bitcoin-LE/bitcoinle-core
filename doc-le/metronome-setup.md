@@ -9,7 +9,7 @@ After installing Bitcoin in your computer, the daemon executable (bitcoind.exe) 
 
 To start the daemon, open a command prompt and type the following:
 
-*cd "[BitcoinInstallationFolder]/bin"* or *cd "[BitcoinInstallationFolder]/daemon"*
+*cd "[BitcoinInstallationFolder]/daemon"*
 
 *bitcoind -rpcport=[DeamonPortNumber] -datadir=[PathToBitcoinDataDir] -rpcallowip=[YourBitcoinLEClientIP] -server=1 -rest=1 -rpcuser=[DaemonUsername] -rpcpassword=[DaemonPassword]*
 

@@ -16,7 +16,7 @@ To start the daemon, open a command prompt and type the following:
 **SUGGESTION:** for a default Bitcoin installation, we suggest the following values:
 ```
 DeamonPortNumber: 8332
-PathToBitcoinDataDir: C:/Users/[YourUsername]/AppData/Roaming/BitcoinLE/bitcoin.conf
+PathToBitcoinDataDir: C:/Users/[YourUsername]/AppData/Roaming/Bitcoin/bitcoin.conf
 YourBitcoinLEClientIP: 127.0.0.1
 DaemonUsername: Pick a username that makes sense to you (no spaces or weird characters)
 DaemonPassword: Pick a secure password, hard to guess, that makes sense to you

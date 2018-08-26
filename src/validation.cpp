@@ -1664,6 +1664,21 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     if (!CheckBlock(block, state, chainparams.GetConsensus(), !fJustCheck, !fJustCheck))
         return error("%s: Consensus::CheckBlock: %s", __func__, FormatStateMessage(state));
 
+	if (block.GetHash() != chainparams.GetConsensus().hashGenesisBlock) {
+		// Get prev block index
+		CBlockIndex* pindexPrev = nullptr;
+		BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+		if (mi == mapBlockIndex.end())
+			return state.DoS(10, error("%s: prev block not found", __func__), 0, "prev-blk-not-found");
+		pindexPrev = (*mi).second;
+		if (!CheckBlockRestWindowCompliance(pindexPrev->GetBlockTime(), block.GetMetronomeHash(), chainparams, GetAdjustedTime())) {
+			if (state.IsInvalid() && !state.CorruptionPossible()) {
+				pindex->nStatus |= BLOCK_FAILED_VALID;
+				setDirtyBlockIndex.insert(pindex);
+			}
+			return error("%s: %s", __func__, FormatStateMessage(state));
+		}
+	}
     // verify that the view's current state corresponds to the previous block
     uint256 hashPrevBlock = pindex->pprev == nullptr ? uint256() : pindex->pprev->GetBlockHash();
     assert(hashPrevBlock == view.GetBestBlock());
@@ -2939,16 +2954,18 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
 
 /** Rest window validity checks.
 *  By "Rest", we mean that the block should comply with the rest time window defined by the metronome system */
-bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, const CChainParams& params, int64_t nAdjustedTime)
+bool CheckBlockRestWindowCompliance(uint64_t parentBlockTime, uint256 metronomeHash, const CChainParams& params, int64_t nAdjustedTime)
 {
+	int64_t nowTime = nAdjustedTime; //GetTime();
+
 	// Note: discarding metronomes that were created with timestamps in the future
-	if (blockTime > nAdjustedTime + clockRelaxationTime) {
+	if (parentBlockTime > nowTime + clockRelaxationTime) {
 		LogPrintf("Failed to accept block... Blocktime > GetAdjustedTime()\n");
 		return false;
 	}
 
 	// Performance improvment :: only check if there is a small difference between wallclock time and block time
-	if (nAdjustedTime - blockTime > params.GetMetronomeVerificationWindow()) {
+	if (nowTime - parentBlockTime > params.GetMetronomeVerificationWindow()) {
 		return true;
 	}
 
@@ -2972,7 +2989,7 @@ bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, c
 		return false;
 	}
 
-	if (beat->blockTime < blockTime - clockRelaxationTime) {
+	if (beat->blockTime < parentBlockTime - clockRelaxationTime) {
 		// printf("1) %d - %d\n", beat->blockTime, blockTime);
 		//printf("Failed to accept block... Metronome < BlockTime %d - %d\n", beat->blockTime, blockTime);
 		return false;
@@ -3137,10 +3154,8 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
             return state.DoS(100, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
         if (!ContextualCheckBlockHeader(block, state, chainparams, pindexPrev, GetAdjustedTime()))
             return error("%s: Consensus::ContextualCheckBlockHeader: %s, %s", __func__, hash.ToString(), FormatStateMessage(state));
-		if (!block.hashPrevBlock.IsNull() && !CheckBlockRestWindowCompliance(pindexPrev->GetBlockTime(), block.GetMetronomeHash(), chainparams, GetAdjustedTime())) {
-
+		if (!CheckBlockRestWindowCompliance(pindexPrev->GetBlockTime(), block.GetMetronomeHash(), chainparams, GetAdjustedTime()))
 			return error("%s: Consensus::CheckBlockRestWindowCompliance: %s, %s", __func__, hash.ToString(), block.GetMetronomeHash().GetHex());
-		}
 
         if (!pindexPrev->IsValid(BLOCK_VALID_SCRIPTS)) {
             for (const CBlockIndex* failedit : g_failed_blocks) {
@@ -3244,6 +3259,22 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
         }
         return error("%s: %s", __func__, FormatStateMessage(state));
     }
+
+	if (block.GetHash() != chainparams.GetConsensus().hashGenesisBlock) {
+		// Get prev block index
+		CBlockIndex* pindexPrev = nullptr;
+		BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+		if (mi == mapBlockIndex.end())
+			return state.DoS(10, error("%s: prev block not found", __func__), 0, "prev-blk-not-found");
+		pindexPrev = (*mi).second;
+		if (!CheckBlockRestWindowCompliance(pindexPrev->GetBlockTime(), block.GetMetronomeHash(), chainparams, GetAdjustedTime())) {
+			if (state.IsInvalid() && !state.CorruptionPossible()) {
+				pindex->nStatus |= BLOCK_FAILED_VALID;
+				setDirtyBlockIndex.insert(pindex);
+			}
+			return error("%s: %s", __func__, FormatStateMessage(state));
+		}
+	}
 
     // Header is valid/has work, merkle tree and segwit merkle tree are good...RELAY NOW
     // (but if it does not build on our best tip, let the SendMessages loop relay it)

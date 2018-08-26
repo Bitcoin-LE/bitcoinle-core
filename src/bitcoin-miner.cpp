@@ -113,52 +113,6 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 	printf("Incrementing extra nonce...\n");
 	IncrementExtraNonce(&block, chainActive.Tip(), extraNonce);
 
-	/*uint256 bestHash = uint256S("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-
-	while (!CheckProofOfWork(block.GetHash(), block.nBits, chainparams.GetConsensus())) {
-		uint256 currentHash = block.GetHash();
-
-		if (currentHash.GetHex() < bestHash.GetHex()) {
-			bestHash = currentHash;
-			printf("Best Hash: %s\n", bestHash.GetHex().c_str());
-		}
-
-		if (block.nNonce >= 0xFFFFFFFF) {
-			printf("Nonce MAX VALUE reached! Restarting...\n");
-			return CBlock();
-		}
-
-		if (chainActive.Tip()->GetBlockHash().GetHex() != block.hashPrevBlock.GetHex()) {
-			printf("Someone else mined a block! Restarting...\n");
-			return CBlock();
-		}
-
-		++block.nNonce;
-
-		// TODO: change rules so that block with timestamps in the past don't get in??
-		if (block.nNonce % 10 == 0) {
-			block.nTime = GetAdjustedTime();
-		}
-
-		if (block.nNonce % 100000 == 0) {
-			printf("Nonce: %lu \r", block.nNonce);
-		}
-
-		// TODO: restart calculation if new block has been found by someone else
-		// TODO: check if nonce has reached MAX value and if true, restart calculation
-	}
-
-	printf("Processing new block: %s, BlockTime: %lu, Now: %lu\n", block.GetHash().GetHex().c_str(), block.GetBlockTime(), GetTime());
-
-	//block.nTime += 120;
-
-	std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(block);
-	bool success = ProcessNewBlock(chainparams, shared_pblock, true, nullptr);
-
-	printf("Ending... Block accepted? %s...\n", success ? "true" : "false");
-	CBlock result = block;
-	return result;*/
-
 	handler.clear();
 	std::thread thds[MAX_N_THREADS];
 	uint64_t PAGE_SIZE_MINER = 0x100000000L / MAX_N_THREADS;

@@ -8,10 +8,7 @@
 #include <string>
 #include <codecvt>
 #include <locale>
-<<<<<<< HEAD
 //#include <boost/process.hpp>
-=======
->>>>>>> cb231965487a7b69cfcf0e6c148da39de4760dca
 
 
 #include "chainparamsbase.h"

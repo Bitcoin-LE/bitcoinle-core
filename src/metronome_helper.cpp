@@ -7,10 +7,7 @@
 #include <string>
 #include <codecvt>
 #include <locale>
-<<<<<<< HEAD
 //#include <boost/process.hpp>
-=======
->>>>>>> cb231965487a7b69cfcf0e6c148da39de4760dca
 
 
 #include "chainparamsbase.h"
@@ -158,16 +155,16 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 
 	UniValue result = find_value(reply, "result");
 	UniValue headerTime = find_value(result, "time");
-
+	UniValue height = find_value(result, "height");
+	
 	if (!headerTime.isNum()) {
 		return std::shared_ptr<CMetronomeBeat>();
 	}
 
-	int64_t blockTime = headerTime.get_int64();
-
 	std::shared_ptr<CMetronomeBeat> beat = std::make_shared<CMetronomeBeat>();
 	beat->hash = hash;
-	beat->blockTime = blockTime;
+	beat->blockTime = headerTime.get_int64();
+	beat->height = height.get_int64();
 
 	// printf("Bitcoin Metronome Block Time: %lu", beat->blockTime);
 

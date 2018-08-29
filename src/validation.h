@@ -484,7 +484,7 @@ void DumpMempool();
 bool LoadMempool();
 
 // Low-energy checker
-bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, const CChainParams& params, int64_t nAdjustedTime);
+bool CheckBlockRestWindowCompliance(uint64_t blockTime, uint256 metronomeHash, uint256 parentMetronomeHash, const CChainParams& params, int64_t nAdjustedTime);
 
 
 #endif // BITCOIN_VALIDATION_H

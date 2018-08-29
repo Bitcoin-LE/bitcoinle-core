@@ -35,26 +35,33 @@
 #include <stdio.h>
 #include <unistd.h>
 
-const int MAX_N_THREADS = 6;
+int MAX_N_THREADS = 6;
 
 struct MinerHandler {
 	bool found;
 	bool interrupt;
 	CBlock block;
-	uint64_t currentOffset[MAX_N_THREADS];
+	uint64_t mineStartTime;
+	uint64_t* currentOffset;
 	MinerHandler() : found(false), block(CBlock()), interrupt(false) {
-
+	}
+	~MinerHandler() {
+		delete currentOffset;
+	}
+	void init() {
+		currentOffset = new uint64_t[MAX_N_THREADS];
 	}
 	void clear() {
 		found = false;
 		block = CBlock();
 		interrupt = false;
+		mineStartTime = 0;
 	}
 };
 
 MinerHandler handler;
 
-void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, MinerHandler* handler);
+void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, MinerHandler* handler, uint64_t PAGE_SIZE_MINER);
 
 CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const CScript& scriptPubKey)
 {
@@ -73,7 +80,7 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 		CBlockIndex* headBlock = chainActive.Tip();
 
 		std::shared_ptr<Metronome::CMetronomeBeat> latestBeat = Metronome::CMetronomeHelper::GetLatestMetronomeBeat();
-		if (CheckBlockRestWindowCompliance(headBlock->GetBlockTime(), latestBeat->hash, chainparams, GetAdjustedTime())) {
+		if (CheckBlockRestWindowCompliance(headBlock->GetBlockTime(), latestBeat->hash, headBlock->hashMetronome, chainparams, GetAdjustedTime())) {
 			int age = GetAdjustedTime() - latestBeat->blockTime;
 			int sleepTime = latestBeat->blockTime - headBlock->GetBlockTime();
 			printf("Found beat -> Hash: %s, Time: %lu, Age: %ds\n", latestBeat->hash.GetHex().c_str(), latestBeat->blockTime, age);
@@ -114,10 +121,12 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 	IncrementExtraNonce(&block, chainActive.Tip(), extraNonce);
 
 	handler.clear();
+	handler.mineStartTime = GetTime();
+
 	std::thread thds[MAX_N_THREADS];
 	uint64_t PAGE_SIZE_MINER = 0x100000000L / MAX_N_THREADS;
 	for (uint32_t i = 0; i < MAX_N_THREADS; ++i) {
-		thds[i] = std::thread(proofOfWorkFinder, i, CBlock(block), i * PAGE_SIZE_MINER, (i + 1) * PAGE_SIZE_MINER, &handler);
+		thds[i] = std::thread(proofOfWorkFinder, i, CBlock(block), i * PAGE_SIZE_MINER, (i + 1) * PAGE_SIZE_MINER, &handler, PAGE_SIZE_MINER);
 	}
 
 	for (uint32_t i = 0; i < MAX_N_THREADS; ++i) {
@@ -131,7 +140,7 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 	return CBlock();
 }
 
-void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, MinerHandler* handler) {
+void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, MinerHandler* handler, uint64_t PAGE_SIZE_MINER) {
 	const CChainParams& chainparams = Params();
 	block.nNonce = from;
 	while (!CheckProofOfWork(block.GetHash(), block.nBits, chainparams.GetConsensus())) {
@@ -162,11 +171,15 @@ void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, M
 		}
 
 		if (idx == 0 && block.nNonce % 100000 == 0) {
-			std::cout << "Nonces: ";
+			uint64_t totalNonceCount = 0;
 			for (int i = 0; i < MAX_N_THREADS; ++i) {
-				std::cout << handler->currentOffset[i] << " ";
+				totalNonceCount += handler->currentOffset[i] - i * PAGE_SIZE_MINER;
 			}
-			std::cout << "\r";
+			if (GetTime() != handler->mineStartTime) {
+				double avgHashRate = totalNonceCount / (GetTime() - handler->mineStartTime) / 1024.0;
+				std::cout << "Hashrate: " << avgHashRate << " kH/s\r";
+			}
+			
 		}
 	}
 
@@ -214,12 +227,14 @@ int main(int argc, char* argv[])
 	try
 	{
 		gArgs.ReadConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME));
+		MAX_N_THREADS = gArgs.GetArg("-threads", 6);
 	}
 	catch (const std::exception& e) {
 		fprintf(stderr, "Error reading configuration file: %s\n", e.what());
 		return false;
 	}
 
+	handler.init();
 	SelectParams(CBaseChainParams::MAIN);
 
 	InitLogging();

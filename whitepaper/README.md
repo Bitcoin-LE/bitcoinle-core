@@ -107,7 +107,7 @@ On the other hand, if a coin is less popular, then fees are expected to be lower
 Initial Bitcoin LE configuration has the following arbitrated format:
   - Bitcoin LE as the primary coin
   - Bitcoin as the metronome coin
-  - Average block time of 6 minutes
+  - Average block time of 6 minutes: half that of Bitcoin's average block time (5 minutes of rest time), plus average mining time enforced by the network (1 minute of mining time)
   - Official coin symbol: "BLE" (e.g.: 2 BLE = 2 Bitcoin LE coins)
   - All other configuration is inherited from Bitcoin (such as max supply, difficulty adjustment period, etc..)
 

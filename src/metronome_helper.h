@@ -31,8 +31,8 @@ namespace Metronome {
 
 	struct CMetronomeBeat {
 		uint256 hash;
-		uint64_t blockTime;
-		uint64_t height;
+		int64_t blockTime;
+		int64_t height;
 	};
 
 	class CMetronomeHelper

@@ -82,6 +82,9 @@ uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
 
+std::shared_ptr<Metronome::CMetronomeBeat> lastBeat; 
+uint64_t lastBeatTime;
+
 uint256 hashAssumeValid;
 arith_uint256 nMinimumChainWork;
 
@@ -2956,31 +2959,45 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
 *  By "Rest", we mean that the block should comply with the rest time window defined by the metronome system */
 bool CheckBlockRestWindowCompliance(uint64_t parentBlockTime, uint256 metronomeHash, uint256 parentMetronomeHash, const CChainParams& params, int64_t nAdjustedTime)
 {
-	// Performance improvment :: only check if there is a small difference between wallclock time and block time
-	if (GetTime() - parentBlockTime > params.GetMetronomeVerificationWindow()) {
+	// Performance improvment :: do not check blocks older than 1 day
+	if (GetTime() - parentBlockTime > 60 * 60 * 28) {
+//		printf("Block too old: %d\n", parentBlockTime);
 		return true;
 	}
 
 	std::shared_ptr<Metronome::CMetronomeBeat> beat, parentBeat; 
 	int attemptCounter = 0;
-	int MAX_ATTEMPTS = 10;
+	int MAX_ATTEMPTS = 100;
 	do {
+		beat.reset();
+		parentBeat.reset();
 		if (attemptCounter > 0) {
-			MilliSleep(5000);
+			MilliSleep(500);
 		}
 		beat = Metronome::CMetronomeHelper::GetMetronomeBeat(metronomeHash);
-		parentBeat = Metronome::CMetronomeHelper::GetMetronomeBeat(parentMetronomeHash);
+		if (!lastBeat || lastBeatTime < GetTime() - 10 * 60) {
+			lastBeat = Metronome::CMetronomeHelper::GetLatestMetronomeBeat();
+			lastBeatTime = GetTime();
+		}
+		if (beat && lastBeat) {
+			if (lastBeat->height - beat->height > params.GetMetronomeVerificationWindow()) {
+//				printf("Block too old for check: LATEST=%d BLOCK=%d WINDOW=%d\n", lastBeat->height, beat->height, params.GetMetronomeVerificationWindow());
+				return true;
+			}	
+			parentBeat = Metronome::CMetronomeHelper::GetMetronomeBeat(parentMetronomeHash);
+		}
 		attemptCounter++;
-	} while (!beat && attemptCounter < MAX_ATTEMPTS);
+	} while (!beat && !parentBeat && attemptCounter < MAX_ATTEMPTS);
 	
 	if (!beat) {
-		LogPrintf("Failed to accept block... Metronome hash not found %s\n", metronomeHash.GetHex().c_str());
+//		LogPrintf("Failed to accept block... Metronome hash not found %s\n", metronomeHash.GetHex().c_str());
 		return false;
 	}
 
 	//printf("Current Metro Height: %d, Parent Metro Height: %d\n", beat->height, parentBeat->height);
 
 	if (beat->height <= parentBeat->height) {
+		//LogPrintf("Heights do not match! B=%d, P=%d\n", beat->height, parentBeat->height);
 		// printf("1) %d - %d\n", beat->blockTime, blockTime);
 		//printf("Failed to accept block... Metronome < BlockTime %d - %d\n", beat->blockTime, blockTime);
 		return false;

@@ -117,7 +117,7 @@ public:
         pchMessageStart[3] = 0xd9;
         nDefaultPort = 8221;
         nPruneAfterHeight = 100000;
-		metronomeVerificationWindow = 60 * 60 * 2; // 2 hours
+		metronomeVerificationWindow = 15; // 15 blocks
 
 		// Main chain - Bitcoin LE
 		genesis = CreateGenesisBlock(1518878609, 1998922, 0x1e00ffff, 1, 50 * COIN);
@@ -208,7 +208,7 @@ public:
         pchMessageStart[3] = 0x07;
         nDefaultPort = 18222;
         nPruneAfterHeight = 1000;
-		metronomeVerificationWindow = 60 * 60 * 2; // 2 hours
+		metronomeVerificationWindow = 15; // 15 blocks
 		
 		// Bitcoin LE Genesis Block
 		genesis = CreateGenesisBlock(1518878603, 239409597, 0x1d00ffff, 1, 50 * COIN);
@@ -291,7 +291,7 @@ public:
         pchMessageStart[3] = 0xda;
         nDefaultPort = 18220;
         nPruneAfterHeight = 1000;
-		metronomeVerificationWindow = 60 * 60 * 2; // 2 hours
+		metronomeVerificationWindow = 15; // 15 blocks
 
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();

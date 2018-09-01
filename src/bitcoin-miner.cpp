@@ -62,6 +62,57 @@ struct MinerHandler {
 MinerHandler handler;
 
 void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, MinerHandler* handler, uint64_t PAGE_SIZE_MINER);
+bool hasPeers();
+
+void wait4Sync() {
+	uint64_t height = 0;
+	CBlockIndex* headBlock = chainActive.Tip();
+	if (headBlock) {
+		height = headBlock -> nHeight;
+	}
+	printf("\n");
+	// if height is stable for 30 seconds, assume sync
+	int SYNC_WAIT = 30;
+	for (;;) {
+		if (handler.interrupt) {
+			return;
+		}
+		CBlockIndex* newHeadBlock;
+		for (int i = 0; i <= SYNC_WAIT; ++i) {
+			newHeadBlock = chainActive.Tip();
+			if (newHeadBlock && newHeadBlock->nHeight == height) {
+				printf("Analyzing blocks... BLOCK=%d (%d\%)\r", height, (int) (i * 100.0 / SYNC_WAIT));
+			}
+			else {
+				printf("Analyzing blocks... BLOCK=%d (%d\%)\r", height, 0);
+			}
+			MilliSleep(1000);
+		}
+		if (newHeadBlock && newHeadBlock->nHeight == height) {
+			return;
+		}
+		if (!newHeadBlock) {
+			height = 0;
+		}
+		else {
+			height = newHeadBlock->nHeight;
+		}
+	}
+};
+
+uint64_t wait4Peers() {
+	printf("\n");
+	uint64_t i = 0;
+	while (!hasPeers()) {
+		if (handler.interrupt) {
+			return 0;
+		}
+		printf("WARNING: waiting for node to become online (%d)\r", i);
+		++i;
+		MilliSleep(1000);
+	}
+	return i;
+}
 
 CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const CScript& scriptPubKey)
 {
@@ -71,9 +122,19 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 	uint32_t PRINTF_PERIOD = 10000;
 
 	std::shared_ptr<Metronome::CMetronomeBeat> beat;
+	uint64_t i = wait4Peers();
+	
+	// if offline more than 10 minutes => wait for sync
+	if (i > 60 * 10) {
+		wait4Sync();
+	}
+	printf("\n");
 
 	for (uint64_t i = 0;;++i) {
 		if (handler.interrupt) {
+			return CBlock();
+		}
+		if (!hasPeers()) {
 			return CBlock();
 		}
 
@@ -127,7 +188,7 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 	uint64_t PAGE_SIZE_MINER = 0x100000000L / MAX_N_THREADS;
 	for (uint32_t i = 0; i < MAX_N_THREADS; ++i) {
 		thds[i] = std::thread(proofOfWorkFinder, i, CBlock(block), i * PAGE_SIZE_MINER, (i + 1) * PAGE_SIZE_MINER, &handler, PAGE_SIZE_MINER);
-	}
+	} 
 
 	for (uint32_t i = 0; i < MAX_N_THREADS; ++i) {
 		thds[i].join();
@@ -173,18 +234,22 @@ void proofOfWorkFinder(uint32_t idx, CBlock block, uint64_t from, uint64_t to, M
 		if (idx == 0 && block.nNonce % 100000 == 0) {
 			uint64_t totalNonceCount = 0;
 			for (int i = 0; i < MAX_N_THREADS; ++i) {
-				totalNonceCount += handler->currentOffset[i] - i * PAGE_SIZE_MINER;
+				totalNonceCount += ((int64_t) handler->currentOffset[i]) - i * PAGE_SIZE_MINER;
 			}
 			if (GetTime() != handler->mineStartTime) {
-				double avgHashRate = totalNonceCount / (GetTime() - handler->mineStartTime) / 1024.0;
+				double avgHashRate = ((totalNonceCount / (GetTime() - handler->mineStartTime)) / 1024.0);
 				std::cout << "Hashrate: " << avgHashRate << " kH/s\r";
 			}
-			
 		}
 	}
 
 	if (block.IsNull()) {
 		//printf("Ending thread: %d\n", idx);
+		return;
+	}
+
+	if (!hasPeers()) {
+		printf("WARNING: node is offline.\n");
 		return;
 	}
 
@@ -213,6 +278,17 @@ static void my_handler(int s) {
 
 	//Shutdown();
 	//exit(1);
+}
+
+bool hasPeers() {
+	if (!g_connman) {
+		return false;
+	}
+
+	std::vector<CNodeStats> vstats;
+	g_connman->GetNodeStats(vstats);
+
+	return !vstats.empty();
 }
 
 int main(int argc, char* argv[])
@@ -293,6 +369,9 @@ int main(int argc, char* argv[])
 	std::shared_ptr<CReserveScript> scriptPubKey = std::make_shared<CReserveScript>();
 	vpwallets[0]->GetScriptForMining(scriptPubKey);
 
+	wait4Peers();
+	wait4Sync();
+	
 	for (;;)
 	{
 		try {

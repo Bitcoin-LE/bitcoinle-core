@@ -157,7 +157,7 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 	UniValue headerTime = find_value(result, "time");
 	UniValue height = find_value(result, "height");
 	
-	if (!headerTime.isNum()) {
+	if (!headerTime.isNum() || !height.isNum()) {
 		return std::shared_ptr<CMetronomeBeat>();
 	}
 

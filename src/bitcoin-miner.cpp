@@ -84,7 +84,7 @@ void wait4Sync() {
 				printf("Analyzing blocks... BLOCK=%d (%d\%)\r", height, (int) (i * 100.0 / SYNC_WAIT));
 			}
 			else {
-				printf("Analyzing blocks... BLOCK=%d (%d\%)\r", height, 0);
+				printf("Analyzing blocks... BLOCK=%d (%d\%)\r", newHeadBlock ? newHeadBlock->nHeight : height, 0);
 			}
 			MilliSleep(1000);
 		}

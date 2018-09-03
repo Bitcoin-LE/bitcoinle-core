@@ -156,7 +156,8 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 	UniValue result = find_value(reply, "result");
 	UniValue headerTime = find_value(result, "time");
 	UniValue height = find_value(result, "height");
-	
+	UniValue nextBlockHash = find_value(result, "nextblockhash");
+
 	if (!headerTime.isNum() || !height.isNum()) {
 		return std::shared_ptr<CMetronomeBeat>();
 	}
@@ -165,6 +166,10 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 	beat->hash = hash;
 	beat->blockTime = headerTime.get_int64();
 	beat->height = height.get_int64();
+
+	if (!nextBlockHash.isNull() && nextBlockHash.isStr()) {
+		beat->nextBlockHash = uint256S(nextBlockHash.getValStr());
+	}
 
 	// printf("Bitcoin Metronome Block Time: %lu", beat->blockTime);
 

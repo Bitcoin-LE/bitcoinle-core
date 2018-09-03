@@ -2960,7 +2960,8 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
 bool CheckBlockRestWindowCompliance(uint64_t parentBlockTime, uint256 metronomeHash, uint256 parentMetronomeHash, const CChainParams& params, int64_t nAdjustedTime)
 {
 	// Performance improvment :: do not check blocks older than 1 day
-	if (GetAdjustedTime() - parentBlockTime > 60 * 60 * 28) {
+//	if (GetAdjustedTime() - parentBlockTime > 60 * 60 * 28) {
+	if (GetTime() - parentBlockTime > 60 * 60 * 28) {
 //		printf("Block too old: %d\n", parentBlockTime);
 		return true;
 	}
@@ -2997,15 +2998,19 @@ bool CheckBlockRestWindowCompliance(uint64_t parentBlockTime, uint256 metronomeH
 
 	//printf("Current Metro Height: %d, Parent Metro Height: %d\n", beat->height, parentBeat->height);
 
-	if (beat->height <= parentBeat->height) {
+	if (beat->height == parentBeat->height + 1) {
+		return true;
+	}
+	return false;
+
+	/*if (beat->height <= parentBeat->height) {
 //		LogPrintf("Heights do not match! B=%d, P=%d\n", beat->height, parentBeat->height);
 //		printf("Heights do not match! B=%d, P=%d\n", beat->height, parentBeat->height);
 		// printf("1) %d - %d\n", beat->blockTime, blockTime);
 		//printf("Failed to accept block... Metronome < BlockTime %d - %d\n", beat->blockTime, blockTime);
 		return false;
 	}
-
-	return true;
+	return true;*/
 }
 
 /** Context-dependent validity checks.

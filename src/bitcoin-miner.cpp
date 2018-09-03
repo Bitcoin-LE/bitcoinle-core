@@ -139,16 +139,24 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 		}
 
 		CBlockIndex* headBlock = chainActive.Tip();
+		
+		std::shared_ptr<Metronome::CMetronomeBeat> currentBeat = Metronome::CMetronomeHelper::GetBlockInfo(headBlock->hashMetronome);
 
-		std::shared_ptr<Metronome::CMetronomeBeat> latestBeat = Metronome::CMetronomeHelper::GetLatestMetronomeBeat();
-		if (CheckBlockRestWindowCompliance(headBlock->GetBlockTime(), latestBeat->hash, headBlock->hashMetronome, chainparams, GetAdjustedTime())) {
-			int age = GetAdjustedTime() - latestBeat->blockTime;
-			int sleepTime = latestBeat->blockTime - headBlock->GetBlockTime();
-			printf("Found beat -> Hash: %s, Time: %lu, Age: %ds\n", latestBeat->hash.GetHex().c_str(), latestBeat->blockTime, age);
-			printf("Previous Block -> Height: %d, Time: %lu, Sleep: %ds\n", headBlock->nHeight, headBlock->GetBlockTime(), sleepTime);
-			printf("AdjustedTime: %d, Time: %d\n", GetAdjustedTime(), GetTime());
-			beat = latestBeat;
-			break;
+		if (currentBeat && !currentBeat->nextBlockHash.IsNull()) {
+			//printf("Cenas = %s", currentBeat->nextBlockHash.GetHex().c_str());
+
+			std::shared_ptr<Metronome::CMetronomeBeat> latestBeat = Metronome::CMetronomeHelper::GetBlockInfo(currentBeat->nextBlockHash);
+			//std::shared_ptr<Metronome::CMetronomeBeat> latestBeat = Metronome::CMetronomeHelper::GetLatestMetronomeBeat();
+
+			if (latestBeat && CheckBlockRestWindowCompliance(headBlock->GetBlockTime(), latestBeat->hash, headBlock->hashMetronome, chainparams, GetAdjustedTime())) {
+				int age = GetAdjustedTime() - latestBeat->blockTime;
+				int sleepTime = latestBeat->blockTime - headBlock->GetBlockTime();
+				printf("Found beat -> Hash: %s, Time: %lu, Age: %ds\n", latestBeat->hash.GetHex().c_str(), latestBeat->blockTime, age);
+				printf("Previous Block -> Height: %d, Time: %lu, Sleep: %ds\n", headBlock->nHeight, headBlock->GetBlockTime(), sleepTime);
+				printf("AdjustedTime: %d, Time: %d\n", GetAdjustedTime(), GetTime());
+				beat = latestBeat;
+				break;
+			}
 		}
 
 		//if (i % (PRINTF_PERIOD / WAIT_TIME) == 0) {

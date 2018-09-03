@@ -33,6 +33,7 @@ namespace Metronome {
 		uint256 hash;
 		int64_t blockTime;
 		int64_t height;
+		uint256 nextBlockHash;
 	};
 
 	class CMetronomeHelper

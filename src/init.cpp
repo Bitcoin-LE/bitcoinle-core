@@ -42,6 +42,8 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "validationinterface.h"
+#include "metronome_helper.h"
+
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #endif
@@ -175,6 +177,8 @@ void Shutdown()
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown)
         return;
+
+	Metronome::CMetronomeHelper::SerializeMetronomes();
 
     /// Note: Shutdown() must be able to handle cases in which initialization failed part of the way,
     /// for example if the data directory was found to be locked.
@@ -1224,6 +1228,9 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 {
     const CChainParams& chainparams = Params();
     // ********************************************************* Step 4a: application initialization
+
+	Metronome::CMetronomeHelper::LoadMetronomes();
+
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());
 #endif

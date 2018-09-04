@@ -148,7 +148,7 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 			std::shared_ptr<Metronome::CMetronomeBeat> latestBeat = Metronome::CMetronomeHelper::GetBlockInfo(currentBeat->nextBlockHash);
 			//std::shared_ptr<Metronome::CMetronomeBeat> latestBeat = Metronome::CMetronomeHelper::GetLatestMetronomeBeat();
 
-			if (latestBeat && CheckBlockRestWindowCompliance(headBlock->GetBlockTime(), latestBeat->hash, headBlock->hashMetronome, chainparams, GetAdjustedTime())) {
+			if (latestBeat) {
 				int age = GetAdjustedTime() - latestBeat->blockTime;
 				int sleepTime = latestBeat->blockTime - headBlock->GetBlockTime();
 				printf("Found beat -> Hash: %s, Time: %lu, Age: %ds\n", latestBeat->hash.GetHex().c_str(), latestBeat->blockTime, age);

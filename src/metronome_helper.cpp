@@ -17,6 +17,21 @@
 #include "rpc/protocol.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "addrdb.h"
+#include "fs.h"
+#include "random.h"
+#include "streams.h"
+#include "hash.h"
+
+#include "addrman.h"
+#include "chainparams.h"
+#include "clientversion.h"
+#include "fs.h"
+#include "hash.h"
+#include "random.h"
+#include "streams.h"
+#include "tinyformat.h"
+#include "util.h"
 
 #include <stdio.h>
 
@@ -35,6 +50,10 @@ static const bool DEFAULT_NAMED = false;
 static const int CONTINUE_EXECUTION = -1;
 static const int MAX_RETRIES = 3;
 
+metromap_t metroMap;
+
+void addToHash(const CMetronomeBeat& beat);
+CMetronomeBeat getBeatFromHash(uint256 hash);
 
 class CConnectionFailed : public std::runtime_error
 {
@@ -143,6 +162,18 @@ uint256 CMetronomeHelper::GetBestBlockHash() {
 }
 
 std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
+
+	CMetronomeBeat tableBeat = getBeatFromHash(hash);
+	if (!tableBeat.isNull() && !tableBeat.nextBlockHash.IsNull()) {
+		std::shared_ptr<CMetronomeBeat> beat = std::make_shared<CMetronomeBeat>();
+		beat->hash = tableBeat.hash;
+		beat->blockTime = tableBeat.blockTime;
+		beat->height = tableBeat.height;
+		beat->nextBlockHash = tableBeat.nextBlockHash;
+		LogPrintf("DB Metronome Info: H=%s, T=%d, H=%d, N=%s\n", beat->hash.GetHex().c_str(), beat->blockTime, beat->height, beat->nextBlockHash.GetHex().c_str());
+		return beat;
+	}
+
 	UniValue params(UniValue::VARR);
 	params.push_back(hash.GetHex());
 
@@ -170,8 +201,9 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 	if (!nextBlockHash.isNull() && nextBlockHash.isStr()) {
 		beat->nextBlockHash = uint256S(nextBlockHash.getValStr());
 	}
-
+	
 	// printf("Bitcoin Metronome Block Time: %lu", beat->blockTime);
+	addToHash(*beat);
 
 	return beat;
 }
@@ -273,4 +305,118 @@ UniValue CMetronomeHelper::ResilientGetMetronomeInfoRPC(const std::string& strMe
 		}
 	}
 	throw std::exception();
+}
+
+/* Metronome HashTables */
+
+fs::path GetMetronomesPath() {
+	return GetDataDir() / "metronomes.dat";
+}
+
+template <typename Stream, typename Data>
+bool SerializeDB(Stream& stream, const Data& data)
+{
+	// Write and commit header, data
+	try {
+		CHashWriter hasher(SER_DISK, CLIENT_VERSION);
+		stream << FLATDATA(Params().MessageStart()) << data;
+		hasher << FLATDATA(Params().MessageStart()) << data;
+		stream << hasher.GetHash();
+	}
+	catch (const std::exception& e) {
+		return error("%s: Serialize or I/O error - %s", __func__, e.what());
+	}
+
+	return true;
+}
+
+template <typename Stream, typename Data>
+bool DeserializeDB(Stream& stream, Data& data, bool fCheckSum = true)
+{
+	try {
+		CHashVerifier<Stream> verifier(&stream);
+		// de-serialize file header (network specific magic number) and ..
+		unsigned char pchMsgTmp[4];
+		verifier >> FLATDATA(pchMsgTmp);
+		// ... verify the network matches ours
+		if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
+			return error("%s: Invalid network magic number", __func__);
+
+		// de-serialize data
+		verifier >> data;
+
+		// verify checksum
+		if (fCheckSum) {
+			uint256 hashTmp;
+			stream >> hashTmp;
+			if (hashTmp != verifier.GetHash()) {
+				return error("%s: Checksum mismatch, data corrupted", __func__);
+			}
+		}
+	}
+	catch (const std::exception& e) {
+		return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+	}
+
+	return true;
+}
+
+template <typename Data>
+bool SerializeFileDB(const std::string& prefix, const fs::path& path, const Data& data)
+{
+	// Generate random temporary filename
+	unsigned short randv = 0;
+	GetRandBytes((unsigned char*)&randv, sizeof(randv));
+	std::string tmpfn = strprintf("%s.%04x", prefix, randv);
+
+	// open temp output file, and associate with CAutoFile
+	fs::path pathTmp = GetDataDir() / tmpfn;
+	FILE *file = fsbridge::fopen(pathTmp, "wb");
+	CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
+	if (fileout.IsNull())
+		return error("%s: Failed to open file %s", __func__, pathTmp.string());
+
+	// Serialize
+	if (!SerializeDB(fileout, data)) return false;
+	FileCommit(fileout.Get());
+	fileout.fclose();
+
+	// replace existing file, if any, with new file
+	if (!RenameOver(pathTmp, path))
+		return error("%s: Rename-into-place failed", __func__);
+
+	return true;
+}
+
+template <typename Data>
+bool DeserializeFileDB(const fs::path& path, Data& data)
+{
+	// open input file, and associate with CAutoFile
+	FILE *file = fsbridge::fopen(path, "rb");
+	CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
+	if (filein.IsNull())
+		return error("%s: Failed to open file %s", __func__, path.string());
+
+	return DeserializeDB(filein, data);
+}
+
+void CMetronomeHelper::SerializeMetronomes() {
+	SerializeFileDB("metronomes", GetMetronomesPath(), metroMap);
+}
+
+void CMetronomeHelper::LoadMetronomes() {
+	DeserializeFileDB(GetMetronomesPath(), metroMap);
+}
+
+CMetronomeBeat getBeatFromHash(uint256 hash) {
+	if (metroMap.find(hash) != metroMap.end()) {
+		return metroMap.find(hash)->second;
+	}
+	return CMetronomeBeat();
+}
+
+void addToHash(const CMetronomeBeat& beat) {
+	if (metroMap.find(beat.hash) == metroMap.end()) {
+		metroMap.insert(std::pair<uint256, CMetronomeBeat>(beat.hash, beat));
+	}
 }

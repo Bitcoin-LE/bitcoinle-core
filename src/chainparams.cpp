@@ -82,6 +82,7 @@ public:
         consensus.powLimit = uint256S("000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
 		consensus.nPowTargetSpacing = 630; // => new rule BitcoinLE (10 minutes + 30s)
+		consensus.nPowTargetMiningSpacing = 30; // => new rule BitcoinLE (30s mining)
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1824; // 95% of 3360

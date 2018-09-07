@@ -9,6 +9,10 @@
 #include "chain.h"
 #include "primitives/block.h"
 #include "uint256.h"
+#include "metronome_helper.h"
+#include <algorithm>
+
+int64_t HF2_BLOCK_HEIGHT = 71850;
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
@@ -37,6 +41,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return pindexLast->nBits;
     }
 
+	if (pindexLast->nHeight + 1 > HF2_BLOCK_HEIGHT) {
+		return CalculateNextWorkRequiredLE(pindexLast, params);
+	}
+
     // Go back by what we want to be 14 days worth of blocks
     int nHeightFirst = pindexLast->nHeight - (params.DifficultyAdjustmentInterval()-1);
     assert(nHeightFirst >= 0);
@@ -44,6 +52,55 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     assert(pindexFirst);
 
     return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
+}
+
+unsigned int CalculateNextWorkRequiredLE(const CBlockIndex* pindexLast, const Consensus::Params& params)
+{
+	if (params.fPowNoRetargeting)
+		return pindexLast->nBits;
+
+	int64_t SAMPLING_PERIOD = 32L;
+	int64_t avgMiningTime = 0;
+	int64_t sampleCount = 0;
+	const CBlockIndex* currentBlockIndex = pindexLast;
+	for (int64_t i = 0; i < params.nMinerConfirmationWindow; ++i) {
+		if (i % SAMPLING_PERIOD == 0) {
+			std::shared_ptr<Metronome::CMetronomeBeat> beat = Metronome::CMetronomeHelper::GetMetronomeBeat(currentBlockIndex->hashMetronome);
+			assert(beat);
+			int64_t blockEpoch = currentBlockIndex->GetBlockTime();
+			int64_t metroTime = beat->blockTime;
+			int64_t miningTime = blockEpoch - metroTime;
+			int64_t blockTime = blockEpoch - currentBlockIndex->pprev->GetBlockTime();
+			miningTime = std::min(miningTime, blockTime);
+
+			// Limit adjustment step
+			if (miningTime < params.nPowTargetMiningSpacing / 4)
+				miningTime = params.nPowTargetMiningSpacing / 4;
+			if (miningTime > params.nPowTargetMiningSpacing * 4)
+				miningTime = params.nPowTargetMiningSpacing * 4;
+			
+			avgMiningTime += miningTime;
+			sampleCount++;
+		}
+		currentBlockIndex = currentBlockIndex->pprev;
+	}
+	avgMiningTime /= sampleCount;
+
+	// Retarget
+	const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
+	arith_uint256 bnNew;
+	bnNew.SetCompact(pindexLast->nBits);
+
+	LogPrintf("NEW DIFFICULTY: AVG=%d seconds, TARGET=%d seconds\n", avgMiningTime, params.nPowTargetMiningSpacing);
+	printf("NEW DIFFICULTY: AVG=%d seconds, TARGET=%d seconds\n", avgMiningTime, params.nPowTargetMiningSpacing);
+
+	bnNew *= avgMiningTime;
+	bnNew /= params.nPowTargetMiningSpacing;
+
+	if (bnNew > bnPowLimit)
+		bnNew = bnPowLimit;
+
+	return bnNew.GetCompact();
 }
 
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)

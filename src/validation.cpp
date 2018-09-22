@@ -2976,6 +2976,10 @@ bool CheckBlockRestWindowCompliance(int64_t blockHeight, uint256 blockHash, uint
 		return false;
 	}
 
+	if (metronomeHash.IsNull()) {
+		return false;
+	}
+
 	std::shared_ptr<Metronome::CMetronomeBeat> beat, parentBeat; 
 	int64_t attemptCounter = 0;
 	do {
@@ -3347,7 +3351,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     return true;
 }
 
-bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
+bool TestBlockValidity(bool fCheckMetronome, CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
 {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainActive.Tip());
@@ -3364,9 +3368,9 @@ bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams,
         return error("%s: Consensus::CheckBlock: %s", __func__, FormatStateMessage(state));
     if (!ContextualCheckBlock(block, state, chainparams.GetConsensus(), pindexPrev))
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__, FormatStateMessage(state));
-	if (!CheckBlockRestWindowCompliance(pindexPrev->nHeight + 1, block.GetHash(), block.GetMetronomeHash(), pindexPrev->hashMetronome, chainparams))
+	if (fCheckMetronome && !CheckBlockRestWindowCompliance(pindexPrev->nHeight + 1, block.GetHash(), block.GetMetronomeHash(), pindexPrev->hashMetronome, chainparams))
 		return error("%s: Consensus::CheckBlockRestWindowCompliance: Block Violates Rest Constraints", __func__);
-	if (!ConnectBlock(block, state, &indexDummy, viewNew, chainparams, true))
+	if (fCheckMetronome && !ConnectBlock(block, state, &indexDummy, viewNew, chainparams, true))
         return false;
 
     assert(state.IsValid());

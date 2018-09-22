@@ -25,6 +25,7 @@
 #include "utilstrencodings.h"
 #include "validationinterface.h"
 #include "warnings.h"
+#include "../metronome_helper.h"
 
 #include <memory>
 #include <stdint.h>
@@ -372,7 +373,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     UniValue lpval = NullUniValue;
     std::set<std::string> setClientRules;
     int64_t nMaxVersionPreVB = -1;
-    if (!request.params[0].isNull())
+    if (request.params.size() > 1 && !request.params[0].isNull())
     {
         const UniValue& oparam = request.params[0].get_obj();
         const UniValue& modeval = find_value(oparam, "mode");
@@ -412,7 +413,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
             if (block.hashPrevBlock != pindexPrev->GetBlockHash())
                 return "inconclusive-not-best-prevblk";
             CValidationState state;
-            TestBlockValidity(state, Params(), block, pindexPrev, false, true);
+            TestBlockValidity(false, state, Params(), block, pindexPrev, false, true);
             return BIP22ValidationResult(state);
         }
 
@@ -504,9 +505,21 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     // Cache whether the last invocation was with segwit support, to avoid returning
     // a segwit-block to a non-segwit caller.
     static bool fLastTemplateSupportsSegwit = true;
-    if (pindexPrev != chainActive.Tip() ||
+    
+
+	// NOTE: metronome code here
+	std::shared_ptr<Metronome::CMetronomeBeat> currentBeat = Metronome::CMetronomeHelper::GetBlockInfo(chainActive.Tip()->hashMetronome);
+	uint256 nextMetronomeHash;
+
+	if (currentBeat && !currentBeat->nextBlockHash.IsNull()) {
+		LogPrintf("GetBlockTemplate status: FOUND BEAT!!!!!\n");
+		nextMetronomeHash = currentBeat->nextBlockHash;
+	}
+
+	if (pindexPrev != chainActive.Tip() ||
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5) ||
-        fLastTemplateSupportsSegwit != fSupportsSegwit)
+        fLastTemplateSupportsSegwit != fSupportsSegwit ||
+		!nextMetronomeHash.IsNull())
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
         pindexPrev = nullptr;
@@ -519,7 +532,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, fSupportsSegwit);
+        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy, fSupportsSegwit, nextMetronomeHash, false);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -644,6 +657,8 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
         aMutable.push_back("version/force");
     }
 
+	result.push_back(Pair("refhash", pblock->GetHash().GetHex()));
+	result.push_back(Pair("metronomehash", pblock->GetMetronomeHash().GetHex()));
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
@@ -674,7 +689,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
         result.push_back(Pair("default_witness_commitment", HexStr(pblocktemplate->vchCoinbaseCommitment.begin(), pblocktemplate->vchCoinbaseCommitment.end())));
     }
 
-    return result;
+	return result;
 }
 
 class submitblock_StateCatcher : public CValidationInterface

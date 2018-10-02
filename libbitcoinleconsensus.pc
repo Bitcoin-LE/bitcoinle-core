@@ -1,11 +1,11 @@
-prefix=/mnt/d/Work/Rep_Blockchain/forks/bitcoin_tests/install
+prefix=/mnt/d/Work/Rep_Blockchain/BitcoinLE_Core/install
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 Name: Bitcoin LE Core consensus library
 Description: Library for the Bitcoin consensus protocol.
-Version: 0.15.6
+Version: 0.15.7
 Libs: -L${libdir} -lbitcoinconsensus
 Cflags: -I${includedir}
 Requires.private: libcrypto

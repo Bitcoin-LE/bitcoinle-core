@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2015-2016 The Bitcoin Core developers
+# Copyright (c) 2015-2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 '''
@@ -151,7 +151,7 @@ def check_PE_DYNAMIC_BASE(executable):
 def check_PE_HIGH_ENTROPY_VA(executable):
     '''PIE: DllCharacteristics bit 0x20 signifies high-entropy ASLR'''
     (arch,bits) = get_PE_dll_characteristics(executable)
-    if arch == 'i386:x86-64': 
+    if arch == 'i386:x86-64':
         reqbits = IMAGE_DLL_CHARACTERISTICS_HIGH_ENTROPY_VA
     else: # Unnecessary on 32-bit
         assert(arch == 'i386')
@@ -212,5 +212,4 @@ if __name__ == '__main__':
         except IOError:
             print('%s: cannot open' % filename)
             retval = 1
-    exit(retval)
-
+    sys.exit(retval)

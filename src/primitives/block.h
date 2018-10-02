@@ -1,14 +1,14 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2017 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
-#include "primitives/transaction.h"
-#include "serialize.h"
-#include "uint256.h"
+#include <primitives/transaction.h>
+#include <serialize.h>
+#include <uint256.h>
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -24,7 +24,7 @@ public:
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
-	uint256 hashMetronome;
+    uint256 hashMetronome;
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
@@ -41,7 +41,7 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
-		READWRITE(hashMetronome);
+        READWRITE(hashMetronome);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
@@ -52,7 +52,7 @@ public:
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
-		hashMetronome.SetNull();
+        hashMetronome.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
@@ -70,9 +70,9 @@ public:
         return (int64_t)nTime;
     }
 
-	uint256 GetMetronomeHash() const {
-		return hashMetronome;
-	}
+    uint256 GetMetronomeHash() const {
+        return hashMetronome;
+    }
 };
 
 
@@ -117,7 +117,7 @@ public:
         block.nVersion       = nVersion;
         block.hashPrevBlock  = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
-		block.hashMetronome  = hashMetronome;
+        block.hashMetronome  = hashMetronome;
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
@@ -137,7 +137,7 @@ struct CBlockLocator
 
     CBlockLocator() {}
 
-    CBlockLocator(const std::vector<uint256>& vHaveIn) : vHave(vHaveIn) {}
+    explicit CBlockLocator(const std::vector<uint256>& vHaveIn) : vHave(vHaveIn) {}
 
     ADD_SERIALIZE_METHODS;
 

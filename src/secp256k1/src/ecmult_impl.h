@@ -4,8 +4,8 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
  **********************************************************************/
 
-#ifndef _SECP256K1_ECMULT_IMPL_H_
-#define _SECP256K1_ECMULT_IMPL_H_
+#ifndef SECP256K1_ECMULT_IMPL_H
+#define SECP256K1_ECMULT_IMPL_H
 
 #include <string.h>
 
@@ -278,7 +278,7 @@ static int secp256k1_ecmult_wnaf(int *wnaf, int len, const secp256k1_scalar *a, 
     CHECK(carry == 0);
     while (bit < 256) {
         CHECK(secp256k1_scalar_get_bits(&s, bit++, 1) == 0);
-    } 
+    }
 #endif
     return last_set_bit + 1;
 }
@@ -403,4 +403,4 @@ static void secp256k1_ecmult(const secp256k1_ecmult_context *ctx, secp256k1_gej 
     }
 }
 
-#endif
+#endif /* SECP256K1_ECMULT_IMPL_H */

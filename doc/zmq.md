@@ -6,7 +6,7 @@ providing various message-oriented semantics such as publish/subscribe,
 request/reply, and push/pull.
 
 The Bitcoin LE Core daemon can be configured to act as a trusted "border
-router", implementing the bitcoin LE wire protocol and relay, making
+router", implementing the bitcoin wire protocol and relay, making
 consensus decisions, maintaining the local blockchain database,
 broadcasting locally generated transactions into the network, and
 providing a queryable RPC interface to interact on a polled basis for
@@ -72,7 +72,7 @@ For instance:
 Each PUB notification has a topic and body, where the header
 corresponds to the notification type. For instance, for the
 notification `-zmqpubhashtx` the topic is `hashtx` (no null
-terminator) and the body is the hexadecimal transaction hash (32
+terminator) and the body is the transaction hash (32
 bytes).
 
 These options can also be provided in bitcoin.conf.
@@ -87,7 +87,7 @@ arriving. Please see `contrib/zmq/zmq_sub.py` for a working example.
 
 ## Remarks
 
-From the perspective of bitcoinled, the ZeroMQ socket is write-only; PUB
+From the perspective of bitcoind, the ZeroMQ socket is write-only; PUB
 sockets don't even have a read function. Thus, there is no state
 introduced into bitcoinled directly. Furthermore, no information is
 broadcast that wasn't already received from the public P2P network.

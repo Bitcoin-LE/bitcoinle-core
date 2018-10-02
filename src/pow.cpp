@@ -3,13 +3,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "pow.h"
+#include <pow.h>
 
-#include "arith_uint256.h"
-#include "chain.h"
-#include "primitives/block.h"
-#include "uint256.h"
-#include "metronome_helper.h"
+#include <arith_uint256.h>
+#include <chain.h>
+#include <primitives/block.h>
+#include <uint256.h>
+#include <metronome_helper.h>
 #include <algorithm>
 
 int64_t HF2_BLOCK_HEIGHT = 71850;
@@ -78,7 +78,7 @@ unsigned int CalculateNextWorkRequiredLE(const CBlockIndex* pindexLast, const Co
 				miningTime = params.nPowTargetMiningSpacing / 4;
 			if (miningTime > params.nPowTargetMiningSpacing * 4)
 				miningTime = params.nPowTargetMiningSpacing * 4;
-			
+
 			avgMiningTime += miningTime;
 			sampleCount++;
 		}

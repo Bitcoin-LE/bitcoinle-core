@@ -301,7 +301,7 @@ touch -a -m -t 201511100546 %{buildroot}%{_datadir}/kde4/services/bitcoin-core.p
 
 # man pages
 install -D -p %{SOURCE20} %{buildroot}%{_mandir}/man1/bitcoinled.1
-install -p %{SOURCE21} %{buildroot}%{_mandir}/man1/bitcoin-cli.1
+install -p %{SOURCE21} %{buildroot}%{_mandir}/man1/bitcoinle-cli.1
 %if %{_buildqt}
 install -p %{SOURCE22} %{buildroot}%{_mandir}/man1/bitcoinle-qt.1
 %endif
@@ -336,6 +336,8 @@ done
 %{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 8333
 %{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18332
 %{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18333
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18443
+%{_sbindir}/semanage port -a -t bitcoin_port_t -p tcp 18444
 %{_sbindir}/fixfiles -R bitcoin-server restore &> /dev/null || :
 %{_sbindir}/restorecon -R %{_localstatedir}/lib/bitcoin || :
 fi
@@ -355,6 +357,8 @@ if [ $1 -eq 0 ]; then
 	%{_sbindir}/semanage port -d -p tcp 8333
 	%{_sbindir}/semanage port -d -p tcp 18332
 	%{_sbindir}/semanage port -d -p tcp 18333
+	%{_sbindir}/semanage port -d -p tcp 18443
+	%{_sbindir}/semanage port -d -p tcp 18444
 	for selinuxvariant in %{selinux_variants}; do
 		%{_sbindir}/semodule -s ${selinuxvariant} -r bitcoin &> /dev/null || :
 	done

@@ -32,6 +32,10 @@
     </context>
 <context>
     <name>Intro</name>
+    <message>
+        <source>Bitcoin LE</source>
+        <translation>Bitcoin LE</translation>
+    </message>
     </context>
 <context>
     <name>ModalOverlay</name>

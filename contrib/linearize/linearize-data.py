@@ -2,7 +2,7 @@
 #
 # linearize-data.py: Construct a linear, no-fork version of the chain.
 #
-# Copyright (c) 2013-2017 The Bitcoin Core developers
+# Copyright (c) 2013-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
@@ -171,7 +171,7 @@ class BlockDataCopier:
 			self.highTS = blkTS
 
 		if (self.blkCountOut % 1000) == 0:
-			print('%i blocks scanned, %i blocks written (of %i, %.1f%% complete)' %
+			print('%i blocks scanned, %i blocks written (of %i, %.1f%% complete)' % 
 					(self.blkCountIn, self.blkCountOut, len(self.blkindex), 100.0 * self.blkCountOut / len(self.blkindex)))
 
 	def inFileName(self, fn):

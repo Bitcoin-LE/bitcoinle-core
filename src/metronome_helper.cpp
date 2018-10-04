@@ -170,7 +170,7 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 		beat->blockTime = tableBeat.blockTime;
 		beat->height = tableBeat.height;
 		beat->nextBlockHash = tableBeat.nextBlockHash;
-		// LogPrintf("DB Metronome Info: H=%s, T=%d, H=%d, N=%s\n", beat->hash.GetHex().c_str(), beat->blockTime, beat->height, beat->nextBlockHash.GetHex().c_str());
+		LogPrintf("DB Metronome Info: H=%s, T=%d, H=%d, N=%s\n", beat->hash.GetHex().c_str(), beat->blockTime, beat->height, beat->nextBlockHash.GetHex().c_str());
 		return beat;
 	}
 
@@ -201,10 +201,8 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 	if (!nextBlockHash.isNull() && nextBlockHash.isStr()) {
 		beat->nextBlockHash = uint256S(nextBlockHash.getValStr());
 	}
-
+	
 	// printf("Bitcoin Metronome Block Time: %lu", beat->blockTime);
-	LogPrintf("Remote Metronome Info: H=%s, T=%d, H=%d, N=%s\n", beat->hash.GetHex().c_str(), beat->blockTime, beat->height, beat->nextBlockHash.GetHex().c_str());
-
 	addToHash(*beat);
 
 	return beat;

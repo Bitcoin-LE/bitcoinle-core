@@ -1,11 +1,11 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2011-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_QT_TRANSACTIONVIEW_H
 #define BITCOIN_QT_TRANSACTIONVIEW_H
 
-#include <qt/guiutil.h>
+#include "guiutil.h"
 
 #include <QWidget>
 #include <QKeyEvent>
@@ -66,7 +66,7 @@ private:
     QComboBox *dateWidget;
     QComboBox *typeWidget;
     QComboBox *watchOnlyWidget;
-    QLineEdit *search_widget;
+    QLineEdit *addressWidget;
     QLineEdit *amountWidget;
 
     QMenu *contextMenu;
@@ -113,7 +113,7 @@ public Q_SLOTS:
     void chooseType(int idx);
     void chooseWatchonly(int idx);
     void changedAmount();
-    void changedSearch();
+    void changedPrefix();
     void exportClicked();
     void focusTransaction(const QModelIndex&);
 

@@ -1,6 +1,21 @@
 Bitcoin LE Core integration/staging tree
 =====================================
 
+https://bitcoinle.org
+
+What is Bitcoin LE?
+----------------
+
+Bitcoin LE is an experimental digital currency that enables instant payments to
+anyone, anywhere in the world. Bitcoin LE uses peer-to-peer technology to operate
+with no central authority: managing transactions and issuing money are carried
+out collectively by the network. Bitcoin LE inherits most of its features from Bitcoin but introduces a new Proof of Work algorithm that drastically reduces the carbon footprint of mining activities. Bitcoin LE Core is the name of the open source
+software which enables the use of this currency.
+
+For more information, as well as an immediately useable, binary version of
+the Bitcoin LE Core software, see [here](../../releases), or read the
+[original whitepaper](whitepaper/README.md).
+
 License
 -------
 

@@ -5,10 +5,10 @@ etc.
 
 There are currently two sets of tests in this directory:
 
-- [functional](/test/functional) which test the functionality of
+- [functional](/test/functional) which test the functionality of 
 bitcoind and bitcoin-qt by interacting with them through the RPC and P2P
 interfaces.
-- [util](/test/util) which tests the bitcoin utilities, currently only
+- [util](test/util) which tests the bitcoin utilities, currently only
 bitcoin-tx.
 
 The util tests are run as part of `make check` target. The functional
@@ -177,11 +177,11 @@ Note: gdb attach step may require `sudo`
 
 ### Util tests
 
-Util tests can be run locally by running `test/util/bitcoin-util-test.py`.
+Util tests can be run locally by running `test/util/bitcoin-util-test.py`. 
 Use the `-v` option for verbose output.
 
 # Writing functional tests
 
 You are encouraged to write functional tests for new or existing features.
-Further information about the functional test framework and individual
+Further information about the functional test framework and individual 
 tests is found in [test/functional](/test/functional).

@@ -11,7 +11,7 @@ argument:
     nodes_main.txt
     nodes_test.txt
 
-These files must consist of lines in the format
+These files must consist of lines in the format 
 
     <ip>
     <ip>:<port>
@@ -114,7 +114,7 @@ def process_nodes(g, f, structname, defaultport):
 def main():
     if len(sys.argv)<2:
         print(('Usage: %s <path_to_nodes_txt>' % sys.argv[0]), file=sys.stderr)
-        sys.exit(1)
+        exit(1)
     g = sys.stdout
     indir = sys.argv[1]
     g.write('#ifndef BITCOIN_CHAINPARAMSSEEDS_H\n')
@@ -127,11 +127,12 @@ def main():
     g.write(' * IPv4 as well as onion addresses are wrapped inside a IPv6 address accordingly.\n')
     g.write(' */\n')
     with open(os.path.join(indir,'nodes_main.txt'),'r') as f:
-        process_nodes(g, f, 'pnSeed6_main', 8333)
+        process_nodes(g, f, 'pnSeed6_main', 8222)
     g.write('\n')
     with open(os.path.join(indir,'nodes_test.txt'),'r') as f:
         process_nodes(g, f, 'pnSeed6_test', 18333)
     g.write('#endif // BITCOIN_CHAINPARAMSSEEDS_H\n')
-
+            
 if __name__ == '__main__':
     main()
+

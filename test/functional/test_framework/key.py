@@ -84,7 +84,7 @@ def _check_result(val, func, args):
 ssl.EC_KEY_new_by_curve_name.restype = ctypes.c_void_p
 ssl.EC_KEY_new_by_curve_name.errcheck = _check_result
 
-class CECKey():
+class CECKey(object):
     """Wrapper around OpenSSL's EC_KEY"""
 
     POINT_CONVERSION_COMPRESSED = 2
@@ -229,3 +229,4 @@ class CPubKey(bytes):
             return '%s(%s)' % (self.__class__.__name__, super(CPubKey, self).__repr__())
         else:
             return '%s(b%s)' % (self.__class__.__name__, super(CPubKey, self).__repr__())
+

@@ -1,23 +1,24 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
+#include "config/bitcoin-config.h"
 #endif
 
-#include <chainparams.h>
-#include <clientversion.h>
-#include <compat.h>
-#include <fs.h>
-#include <rpc/server.h>
-#include <init.h>
-#include <noui.h>
-#include <util.h>
-#include <httpserver.h>
-#include <httprpc.h>
-#include <utilstrencodings.h>
+#include "chainparams.h"
+#include "clientversion.h"
+#include "compat.h"
+#include "fs.h"
+#include "rpc/server.h"
+#include "init.h"
+#include "noui.h"
+#include "scheduler.h"
+#include "util.h"
+#include "httpserver.h"
+#include "httprpc.h"
+#include "utilstrencodings.h"
 
 #include <boost/thread.hpp>
 
@@ -39,7 +40,7 @@
  * Use the buttons <code>Namespaces</code>, <code>Classes</code> or <code>Files</code> at the top of the page to start navigating the code.
  */
 
-void WaitForShutdown()
+void WaitForShutdown(boost::thread_group* threadGroup)
 {
     bool fShutdown = ShutdownRequested();
     // Tell the main threads to shutdown.
@@ -48,7 +49,11 @@ void WaitForShutdown()
         MilliSleep(200);
         fShutdown = ShutdownRequested();
     }
-    Interrupt();
+    if (threadGroup)
+    {
+        Interrupt(*threadGroup);
+        threadGroup->join_all();
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -57,6 +62,9 @@ void WaitForShutdown()
 //
 bool AppInit(int argc, char* argv[])
 {
+    boost::thread_group threadGroup;
+    CScheduler scheduler;
+
     bool fRet = false;
 
     //
@@ -111,8 +119,8 @@ bool AppInit(int argc, char* argv[])
         // Error out when loose non-argument tokens are encountered on command line
         for (int i = 1; i < argc; i++) {
             if (!IsSwitchChar(argv[i][0])) {
-                fprintf(stderr, "Error: Command line contains unexpected token '%s', see bitcoind -h for a list of options.\n", argv[i]);
-                return false;
+                fprintf(stderr, "Error: Command line contains unexpected token '%s', see bitcoinled -h for a list of options.\n", argv[i]);
+                exit(EXIT_FAILURE);
             }
         }
 
@@ -124,17 +132,17 @@ bool AppInit(int argc, char* argv[])
         if (!AppInitBasicSetup())
         {
             // InitError will have been called with detailed error, which ends up on console
-            return false;
+            exit(EXIT_FAILURE);
         }
         if (!AppInitParameterInteraction())
         {
             // InitError will have been called with detailed error, which ends up on console
-            return false;
+            exit(EXIT_FAILURE);
         }
         if (!AppInitSanityChecks())
         {
             // InitError will have been called with detailed error, which ends up on console
-            return false;
+            exit(EXIT_FAILURE);
         }
         if (gArgs.GetBoolArg("-daemon", false))
         {
@@ -155,9 +163,9 @@ bool AppInit(int argc, char* argv[])
         if (!AppInitLockDataDirectory())
         {
             // If locking the data directory failed, exit immediately
-            return false;
+            exit(EXIT_FAILURE);
         }
-        fRet = AppInitMain();
+        fRet = AppInitMain(threadGroup, scheduler);
     }
     catch (const std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");
@@ -167,9 +175,10 @@ bool AppInit(int argc, char* argv[])
 
     if (!fRet)
     {
-        Interrupt();
+        Interrupt(threadGroup);
+        threadGroup.join_all();
     } else {
-        WaitForShutdown();
+        WaitForShutdown(&threadGroup);
     }
     Shutdown();
 

@@ -1,19 +1,18 @@
 // Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <chainparams.h>
-#include <consensus/merkle.h>
+#include "chainparams.h"
+#include "consensus/merkle.h"
 
-#include <tinyformat.h>
-#include <util.h>
-#include <utilstrencodings.h>
+#include "tinyformat.h"
+#include "util.h"
+#include "utilstrencodings.h"
 
 #include <assert.h>
-#include <memory>
 
-#include <chainparamsseeds.h>
+#include "chainparamsseeds.h"
 
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
@@ -76,15 +75,14 @@ public:
     CMainParams() {
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 210000;
-        consensus.BIP16Height = 173805; // 00000000000000ce80a7e057163a4db1d5ad7b20fb6f598c9597b9665c8fb0d4 - April 1, 2012
         consensus.BIP34Height = 227931;
         consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
         consensus.BIP65Height = 388381; // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
         consensus.BIP66Height = 363725; // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
         consensus.powLimit = uint256S("000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
-    		consensus.nPowTargetSpacing = 630; // => new rule BitcoinLE (10 minutes + 30s)
-    		consensus.nPowTargetMiningSpacing = 30; // => new rule BitcoinLE (30s mining)
+		consensus.nPowTargetSpacing = 630; // => new rule BitcoinLE (10 minutes + 30s)
+		consensus.nPowTargetMiningSpacing = 30; // => new rule BitcoinLE (30s mining)
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1824; // 95% of 3360
@@ -120,22 +118,22 @@ public:
         pchMessageStart[3] = 0xd9;
         nDefaultPort = 8220;
         nPruneAfterHeight = 100000;
-    		metronomeVerificationWindow = 15; // 15 blocks
+		metronomeVerificationWindow = 15; // 15 blocks
 
-    		// Main chain - Bitcoin LE
-    		genesis = CreateGenesisBlock(1518878609, 1998922, 0x1e00ffff, 1, 50 * COIN);
-    		consensus.hashGenesisBlock = genesis.GetHash();
-
-    		// Bitcoin LE Genesis Block
-    		assert(consensus.hashGenesisBlock == uint256S("0x00000012f2ab352b613d184a4d304474712c6c651746bfe73d4326cc8bc7e6cd"));
-    		assert(genesis.hashMerkleRoot == uint256S("0xafcf9b6dcf19057cea7debd3d39f00f3708fb191a3a79966411f11989b1aae84"));
+		// Main chain - Bitcoin LE
+		genesis = CreateGenesisBlock(1518878609, 1998922, 0x1e00ffff, 1, 50 * COIN);
+		consensus.hashGenesisBlock = genesis.GetHash();
+		
+		// Bitcoin LE Genesis Block
+		assert(consensus.hashGenesisBlock == uint256S("0x00000012f2ab352b613d184a4d304474712c6c651746bfe73d4326cc8bc7e6cd"));
+		assert(genesis.hashMerkleRoot == uint256S("0xafcf9b6dcf19057cea7debd3d39f00f3708fb191a3a79966411f11989b1aae84"));
 
         // Note that of those with the service bits flag, most only support a subset of possible options
-        vSeeds.emplace_back("seed1.bitcoinle.org");
-    		vSeeds.emplace_back("seed2.bitcoinle.org");
-    		vSeeds.emplace_back("seed3.bitcoinle.org");
-    		vSeeds.emplace_back("seed4.bitcoinle.org");
-    		vSeeds.emplace_back("seed5.bitcoinle.org");
+        vSeeds.emplace_back("seed1.bitcoinle.org", false);
+		vSeeds.emplace_back("seed2.bitcoinle.org", false);
+		vSeeds.emplace_back("seed3.bitcoinle.org", false);
+		vSeeds.emplace_back("seed4.bitcoinle.org", false);
+		vSeeds.emplace_back("seed5.bitcoinle.org", false);
 
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,43);
@@ -143,8 +141,6 @@ public:
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
-
-        bech32_hrp = "bc";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -176,7 +172,6 @@ public:
     CTestNetParams() {
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
-        consensus.BIP16Height = 514; // 00000000040b4e986385315e14bee30ad876d8b47f748025b26683116d21aa65
         consensus.BIP34Height = 21111;
         consensus.BIP34Hash = uint256S("0x0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8");
         consensus.BIP65Height = 581885; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
@@ -215,12 +210,12 @@ public:
         nDefaultPort = 18222;
         nPruneAfterHeight = 1000;
 		metronomeVerificationWindow = 15; // 15 blocks
-
+		
 		// Bitcoin LE Genesis Block
 		genesis = CreateGenesisBlock(1518878603, 239409597, 0x1d00ffff, 1, 50 * COIN);
-
+		
 		consensus.hashGenesisBlock = genesis.GetHash();
-
+        
 		assert(consensus.hashGenesisBlock == uint256S("0x000000002b03a50bb93aea6e2102cf84d4707515a86bd3765802d482bd361290"));
 		assert(genesis.hashMerkleRoot == uint256S("0xafcf9b6dcf19057cea7debd3d39f00f3708fb191a3a79966411f11989b1aae84"));
 
@@ -233,8 +228,6 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
 
-        bech32_hrp = "tb";
-
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
         fDefaultConsistencyChecks = false;
@@ -242,7 +235,7 @@ public:
         fMineBlocksOnDemand = false;
 
 
-        checkpointData = {
+        checkpointData = (CCheckpointData) {
             {
                 {546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")},
             }
@@ -266,7 +259,6 @@ public:
     CRegTestParams() {
         strNetworkID = "regtest";
         consensus.nSubsidyHalvingInterval = 150;
-        consensus.BIP16Height = 0; // always enforce P2SH BIP16 on regtest
         consensus.BIP34Height = 100000000; // BIP34 has not activated on regtest (far in the future so block v1 are not rejected in tests)
         consensus.BIP34Hash = uint256();
         consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in rpc activation tests)
@@ -300,7 +292,7 @@ public:
         pchMessageStart[3] = 0xda;
         nDefaultPort = 18220;
         nPruneAfterHeight = 1000;
-		    metronomeVerificationWindow = 15; // 15 blocks
+		metronomeVerificationWindow = 15; // 15 blocks
 
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
@@ -314,7 +306,7 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = true;
 
-        checkpointData = {
+        checkpointData = (CCheckpointData) {
             {
                 {0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")},
             }
@@ -331,8 +323,6 @@ public:
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
-
-        bech32_hrp = "bcrt";
     }
 };
 

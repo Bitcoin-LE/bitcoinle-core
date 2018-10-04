@@ -1,7 +1,3 @@
-============================
-
-The Bitcoin LE Core project operates an open contributor model where anyone is
-=======
 Contributing to Bitcoin LE Core
 ============================
 
@@ -28,9 +24,9 @@ facilitates social contribution, easy testing and peer review.
 
 To contribute a patch, the workflow is as follows:
 
-  1. Fork repository
-  1. Create topic branch
-  1. Commit patches
+  - Fork repository
+  - Create topic branch
+  - Commit patches
 
 The project coding conventions in the [developer notes](doc/developer-notes.md)
 must be adhered to.
@@ -46,8 +42,8 @@ in init.cpp") in which case a single title line is sufficient. Commit messages s
 helpful to people reading your code in the future, so explain the reasoning for
 your decisions. Further explanation [here](http://chris.beams.io/posts/git-commit/).
 
-If a particular commit references another issue, please add the reference. For
-example: `refs #1234` or `fixes #4321`. Using the `fixes` or `closes` keywords
+If a particular commit references another issue, please add the reference, for
+example `refs #1234`, or `fixes #4321`. Using the `fixes` or `closes` keywords
 will cause the corresponding issue to be closed when the pull request is merged.
 
 Please refer to the [Git manual](https://git-scm.com/doc) for more information
@@ -157,20 +153,12 @@ behaviour of code within the pull request (bugs must be preserved as is).
 Project maintainers aim for a quick turnaround on refactoring pull requests, so
 where possible keep them short, uncomplex and easy to verify.
 
-Pull requests that refactor the code should not be made by new contributors. It
-requires a certain level of experience to know where the code belongs to and to
-understand the full ramification (including rebase effort of open pull requests).
-
-Trivial pull requests or pull requests that refactor the code with no clear
-benefits may be immediately closed by the maintainers to reduce unnecessary
-workload on reviewing.
-
 
 "Decision Making" Process
 -------------------------
 
-The following applies to code changes to the Bitcoin Core project (and related
-projects such as libsecp256k1), and is not to be confused with overall Bitcoin
+The following applies to code changes to the Bitcoin LE Core project (and related
+projects such as libsecp256k1), and is not to be confused with overall Bitcoin LE
 Network Protocol consensus changes.
 
 Whether a pull request is merged into Bitcoin LE Core rests with the project merge
@@ -186,7 +174,7 @@ In general, all pull requests must:
     the project (for example refactoring for modularisation);
   - Be well peer reviewed;
   - Have unit tests and functional tests where appropriate;
-  - Follow code style guidelines ([C++](doc/developer-notes.md), [functional tests](test/functional/README.md));
+  - Follow code style guidelines;
   - Not break the existing test suite;
   - Where bugs are fixed, where possible, there should be unit tests
     demonstrating the bug and also proving the fix. This helps prevent regression.
@@ -277,7 +265,7 @@ The project leader is the release manager for each Bitcoin LE Core release.
 Copyright
 ---------
 
-By contributing to this repository, you agree to license your work under the
-MIT license unless specified otherwise in `contrib/debian/copyright` or at
-the top of the file itself. Any work contributed where you are not the original
+By contributing to this repository, you agree to license your work under the 
+MIT license unless specified otherwise in `contrib/debian/copyright` or at 
+the top of the file itself. Any work contributed where you are not the original 
 author must contain its license header with the original author(s) and source.

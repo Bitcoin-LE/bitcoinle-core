@@ -1,14 +1,13 @@
 [Desktop Entry]
-Version=1.0
+Encoding=UTF-8
 Name=Bitcoin LE Core
-Comment=Connect to the Bitcoin LE P2P Network
-Comment[de]=Verbinde mit dem Bitcoin LE peer-to-peer Netzwerk
-Comment[fr]=Bitcoin LE, monnaie virtuelle cryptographique pair à pair
-Comment[tr]=Bitcoin LE, eşten eşe kriptografik sanal para birimi
-Exec=bitcoinle-qt %u
+Comment=Connect to the Bitcoin P2P Network
+Comment[de]=Verbinde mit dem Bitcoin peer-to-peer Netzwerk
+Comment[fr]=Bitcoin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Bitcoin, eşten eşe kriptografik sanal para birimi
+Exec=bitcoin-qt %u
 Terminal=false
 Type=Application
 Icon=bitcoin128
-MimeType=x-scheme-handler/bitcoinle;
+MimeType=x-scheme-handler/bitcoin;
 Categories=Office;Finance;
-StartupWMClass=bitcoinle-qt

@@ -1,43 +1,43 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2011-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
+#include "config/bitcoin-config.h"
 #endif
 
-#include <qt/bitcoingui.h>
+#include "bitcoingui.h"
 
-#include <chainparams.h>
-#include <qt/clientmodel.h>
-#include <fs.h>
-#include <qt/guiconstants.h>
-#include <qt/guiutil.h>
-#include <qt/intro.h>
-#include <qt/metronome.h>
-#include <qt/networkstyle.h>
-#include <qt/optionsmodel.h>
-#include <qt/platformstyle.h>
-#include <qt/splashscreen.h>
-#include <qt/utilitydialog.h>
-#include <qt/winshutdownmonitor.h>
+#include "chainparams.h"
+#include "clientmodel.h"
+#include "fs.h"
+#include "guiconstants.h"
+#include "guiutil.h"
+#include "intro.h"
+#include "metronome.h"
+#include "networkstyle.h"
+#include "optionsmodel.h"
+#include "platformstyle.h"
+#include "splashscreen.h"
+#include "utilitydialog.h"
+#include "winshutdownmonitor.h"
 
 #ifdef ENABLE_WALLET
-#include <qt/paymentserver.h>
-#include <qt/walletmodel.h>
+#include "paymentserver.h"
+#include "walletmodel.h"
 #endif
 
-#include <init.h>
-#include <rpc/server.h>
-#include <ui_interface.h>
-#include <util.h>
-#include <warnings.h>
+#include "init.h"
+#include "rpc/server.h"
+#include "scheduler.h"
+#include "ui_interface.h"
+#include "util.h"
+#include "warnings.h"
 
 #ifdef ENABLE_WALLET
-#include <wallet/wallet.h>
+#include "wallet/wallet.h"
 #endif
 
-#include <memory>
 #include <stdint.h>
 
 #include <boost/thread.hpp>
@@ -194,6 +194,8 @@ Q_SIGNALS:
     void runawayException(const QString &message);
 
 private:
+    boost::thread_group threadGroup;
+    CScheduler scheduler;
 
     /// Pass fatal exception message to UI thread
     void handleRunawayException(const std::exception *e);
@@ -226,7 +228,7 @@ public:
     void requestShutdown();
 
     /// Get process return value
-    int getReturnValue() const { return returnValue; }
+    int getReturnValue() { return returnValue; }
 
     /// Get window identifier of QMainWindow (BitcoinGUI)
     WId getMainWinId() const;
@@ -260,7 +262,7 @@ private:
     void startThread();
 };
 
-#include <qt/bitcoin.moc>
+#include "bitcoin.moc"
 
 BitcoinCore::BitcoinCore():
     QObject()
@@ -299,7 +301,7 @@ void BitcoinCore::initialize()
     try
     {
         qDebug() << __func__ << ": Running initialization in thread";
-        bool rv = AppInitMain();
+        bool rv = AppInitMain(threadGroup, scheduler);
         Q_EMIT initializeResult(rv);
     } catch (const std::exception& e) {
         handleRunawayException(&e);
@@ -313,7 +315,8 @@ void BitcoinCore::shutdown()
     try
     {
         qDebug() << __func__ << ": Running Shutdown in thread";
-        Interrupt();
+        Interrupt(threadGroup);
+        threadGroup.join_all();
         Shutdown();
         qDebug() << __func__ << ": Shutdown finished";
         Q_EMIT shutdownResult();
@@ -390,6 +393,7 @@ void BitcoinApplication::createWindow(const NetworkStyle *networkStyle)
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, SIGNAL(timeout()), window, SLOT(detectShutdown()));
+    pollShutdownTimer->start(200);
 }
 
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle)
@@ -516,16 +520,14 @@ void BitcoinApplication::initializeResult(bool success)
                          window, SLOT(message(QString,QString,unsigned int)));
         QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
 #endif
-        pollShutdownTimer->start(200);
     } else {
-        Q_EMIT splashFinished(window); // Make sure splash screen doesn't stick around during shutdown
-        quit(); // Exit first main loop invocation
+        quit(); // Exit main loop
     }
 }
 
 void BitcoinApplication::shutdownResult()
 {
-    quit(); // Exit second main loop invocation after shutdown finished
+    quit(); // Exit main loop after shutdown finished
 }
 
 void BitcoinApplication::handleRunawayException(const QString &message)
@@ -617,18 +619,18 @@ int main(int argc, char *argv[])
     if (!Intro::pickDataDirectory())
         return EXIT_SUCCESS;
 
-    try	{
-        gArgs.ReadConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME));
-    }
-    catch (const std::exception& e) {
-        QMessageBox::critical(0, QObject::tr(PACKAGE_NAME), QObject::tr("Error reading configuration file."));
-        return EXIT_SUCCESS;
-    }
+	try	{
+		gArgs.ReadConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME));
+	}
+	catch (const std::exception& e) {
+		QMessageBox::critical(0, QObject::tr(PACKAGE_NAME), QObject::tr("Error reading configuration file."));
+		return EXIT_SUCCESS;
+	}
 
-    if (!Metronome::pickMetronomeServer())
-        return EXIT_SUCCESS;
+	if (!Metronome::pickMetronomeServer())
+		return EXIT_SUCCESS;
 
-    // QMessageBox::critical(0, QObject::tr(PACKAGE_NAME), QObject::tr("Debug message box."));
+	// QMessageBox::critical(0, QObject::tr(PACKAGE_NAME), QObject::tr("Debug message box."));
 
     /// 6. Determine availability of data directory and parse bitcoin.conf
     /// - Do not call GetDataDir(true) before this step finishes
@@ -703,7 +705,7 @@ int main(int argc, char *argv[])
     // Allow parameter interaction before we create the options model
     app.parameterSetup();
     // Load GUI settings from QSettings
-    app.createOptionsModel(gArgs.GetBoolArg("-resetguisettings", false));
+    app.createOptionsModel(gArgs.IsArgSet("-resetguisettings"));
 
     // Subscribe to global signals from core
     uiInterface.InitMessage.connect(InitMessage);

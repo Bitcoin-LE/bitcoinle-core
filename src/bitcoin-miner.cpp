@@ -123,7 +123,7 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 
 	std::shared_ptr<Metronome::CMetronomeBeat> beat;
 	uint64_t i = wait4Peers();
-
+	
 	// if offline more than 10 minutes => wait for sync
 	if (i > 60 * 10) {
 		wait4Sync();
@@ -139,7 +139,7 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 		}
 
 		CBlockIndex* headBlock = chainActive.Tip();
-
+		
 		std::shared_ptr<Metronome::CMetronomeBeat> currentBeat = Metronome::CMetronomeHelper::GetBlockInfo(headBlock->hashMetronome);
 
 		if (currentBeat && !currentBeat->nextBlockHash.IsNull()) {
@@ -196,7 +196,7 @@ CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction>& txns, const
 	uint64_t PAGE_SIZE_MINER = 0x100000000L / MAX_N_THREADS;
 	for (uint32_t i = 0; i < MAX_N_THREADS; ++i) {
 		thds[i] = std::thread(proofOfWorkFinder, i, CBlock(block), i * PAGE_SIZE_MINER, (i + 1) * PAGE_SIZE_MINER, &handler, PAGE_SIZE_MINER);
-	}
+	} 
 
 	for (uint32_t i = 0; i < MAX_N_THREADS; ++i) {
 		thds[i].join();
@@ -344,7 +344,7 @@ int main(int argc, char* argv[])
 		// If locking the data directory failed, exit immediately
 		exit(EXIT_FAILURE);
 	}
-	bool fRet = AppInitMain();
+	bool fRet = AppInitMain(threadGroup, scheduler);
 
 #ifdef _WIN32
 	signal(SIGINT, my_handler);
@@ -379,7 +379,7 @@ int main(int argc, char* argv[])
 
 	wait4Peers();
 	wait4Sync();
-
+	
 	for (;;)
 	{
 		try {
@@ -397,7 +397,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	Interrupt();
+	Interrupt(threadGroup);
 	Shutdown();
 	return 0;
 }

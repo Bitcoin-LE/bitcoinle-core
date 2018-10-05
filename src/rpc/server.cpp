@@ -13,6 +13,9 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "../tinyformat.h"
+#include "../util.h"
+
 
 #include <univalue.h>
 

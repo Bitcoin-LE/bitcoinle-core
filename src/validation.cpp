@@ -94,8 +94,8 @@ CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 CBlockPolicyEstimator feeEstimator;
 CTxMemPool mempool(&feeEstimator);
 
-uint256 HF1_BLOCK_HASH   = uint256S("0x00000005a19a4610e131c64a0e54ff6b053f3ee8f99609543e24076945eda6ea");
-int64_t HF1_BLOCK_HEIGHT = 71256;
+uint256 HF1_BLOCK_HASH   = uint256S("0x000000019d2d128345ff14c9ae6293646d2f745a27d8f2eeca7ca05ea30eda64");
+int64_t HF1_BLOCK_HEIGHT = 77325;
 
 
 static void CheckBlockIndex(const Consensus::Params& consensusParams);

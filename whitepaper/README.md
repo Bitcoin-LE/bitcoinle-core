@@ -2,7 +2,7 @@
 
 **May 20, 2018**
 
-**Abstract:** Bitcoin LE software introduces a new blockchain architecture designed to enable low energy, eco-firendly and decentralized Proof-of-Work-based transactions. Such capabilities are achieved by introducing a new consensus algorithm named Proof of Work Low Energy (in short: PoW-LE). This software provides wallet manipulation, new account creation, transaction management and the core features essential for a cryptography-based economy. The resulting technology is a blockchain architecture that can scale to millions of users, dramatically lower common fees, and more importantly, drastically reduce the carbon footprint of the so called work, commonly known as "mining".
+**Abstract:** Bitcoin LE software introduces a new blockchain architecture designed to enable low energy, eco-friendly and decentralized Proof-of-Work-based transactions. Such capabilities are achieved by introducing a new consensus algorithm named Proof of Work Low Energy (in short: PoW-LE). This software provides wallet manipulation, new account creation, transaction management and the core features essential for a cryptography-based economy. The resulting technology is a blockchain architecture that can scale to millions of users, dramatically lower common fees, and more importantly, drastically reduce the carbon footprint of the so called work, commonly known as "mining".
 
 Copyright © 2018 bitcoinle.org
 

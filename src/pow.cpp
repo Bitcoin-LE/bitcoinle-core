@@ -13,11 +13,16 @@
 #include <algorithm>
 
 int64_t HF2_BLOCK_HEIGHT = 71850;
+int64_t HF3_BLOCK_HEIGHT = 81150;
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
     assert(pindexLast != nullptr);
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
+
+	if (pindexLast->nHeight + 1 == HF3_BLOCK_HEIGHT) {
+		return CalculateNextWorkRequiredBigJump(pindexLast, params);
+	}
 
     // Only change once per difficulty adjustment interval
     if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
@@ -54,6 +59,29 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
 }
 
+unsigned int CalculateNextWorkRequiredBigJump(const CBlockIndex* pindexLast, const Consensus::Params& params)
+{
+	if (params.fPowNoRetargeting)
+		return pindexLast->nBits;
+
+	int64_t avgMiningTime = 1;	
+
+	// Retarget
+	const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
+	arith_uint256 bnNew;
+	bnNew.SetCompact(pindexLast->nBits);
+
+	LogPrintf("NEW DIFFICULTY: AVG=%d seconds, TARGET=%d seconds\n", avgMiningTime, params.nPowTargetMiningSpacing);
+
+	bnNew *= avgMiningTime;
+	bnNew /= params.nPowTargetMiningSpacing;
+
+	if (bnNew > bnPowLimit)
+		bnNew = bnPowLimit;
+
+	return bnNew.GetCompact();
+}
+
 unsigned int CalculateNextWorkRequiredLE(const CBlockIndex* pindexLast, const Consensus::Params& params)
 {
 	if (params.fPowNoRetargeting)
@@ -85,6 +113,10 @@ unsigned int CalculateNextWorkRequiredLE(const CBlockIndex* pindexLast, const Co
 		currentBlockIndex = currentBlockIndex->pprev;
 	}
 	avgMiningTime /= sampleCount;
+
+	if (avgMiningTime == 0) {
+		avgMiningTime = 1;
+	}
 
 	// Retarget
 	const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);

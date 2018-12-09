@@ -128,6 +128,8 @@ namespace Metronome {
 		static void SerializeMetronomes();
 
 		static void LoadMetronomes();
+
+		static std::string GetDefaultMetronomeIP();
 	};
 }
 

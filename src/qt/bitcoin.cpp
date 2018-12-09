@@ -627,8 +627,8 @@ int main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 
-	if (!Metronome::pickMetronomeServer())
-		return EXIT_SUCCESS;
+	//if (!Metronome::pickMetronomeServer())
+	//	return EXIT_SUCCESS;
 
 	// QMessageBox::critical(0, QObject::tr(PACKAGE_NAME), QObject::tr("Debug message box."));
 

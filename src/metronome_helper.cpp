@@ -32,6 +32,7 @@
 #include "streams.h"
 #include "tinyformat.h"
 #include "util.h"
+#include "netbase.h"
 
 #include <stdio.h>
 
@@ -43,7 +44,6 @@
 
 using namespace Metronome;
 
-static const char DEFAULT_METRONOME_ADDR[] = "127.0.0.1";
 static const int DEFAULT_METRONOME_PORT = 8332;
 static const int DEFAULT_HTTP_CLIENT_TIMEOUT = 9000;
 static const bool DEFAULT_NAMED = false;
@@ -121,6 +121,28 @@ const char *http_errorstring_metronome(int code)
 	}
 }
 
+std::string DEFAULT_METRONOME_IP = "";
+
+
+std::string CMetronomeHelper::GetDefaultMetronomeIP() {
+	if (DEFAULT_METRONOME_IP != "") {
+		return DEFAULT_METRONOME_IP;
+	}
+
+	std::vector<CNetAddr> vIPs;
+	LookupHost("serrat.metronomes.bitcoinle.org", vIPs, 0, true);
+
+	if (vIPs.size() == 0) {
+		return "127.0.0.1";
+	}
+
+	DEFAULT_METRONOME_IP = vIPs[0].ToString();
+
+	LogPrintf("Metronome Location: %s\n", DEFAULT_METRONOME_IP);
+
+	return DEFAULT_METRONOME_IP;
+}
+
 std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetLatestMetronomeBeat() {
 	uint256 bestBeat = GetBestBlockHash();
 	
@@ -170,7 +192,7 @@ std::shared_ptr<CMetronomeBeat> CMetronomeHelper::GetBlockInfo(uint256 hash) {
 		beat->blockTime = tableBeat.blockTime;
 		beat->height = tableBeat.height;
 		beat->nextBlockHash = tableBeat.nextBlockHash;
-		LogPrintf("DB Metronome Info: H=%s, T=%d, H=%d, N=%s\n", beat->hash.GetHex().c_str(), beat->blockTime, beat->height, beat->nextBlockHash.GetHex().c_str());
+		// LogPrintf("DB Metronome Info: H=%s, T=%d, H=%d, N=%s\n", beat->hash.GetHex().c_str(), beat->blockTime, beat->height, beat->nextBlockHash.GetHex().c_str());
 		return beat;
 	}
 
@@ -216,11 +238,11 @@ UniValue CMetronomeHelper::GetMetronomeInfoRPC(const std::string& strMethod, con
 	std::string user;
 	std::string password;
 
-	SplitHostPort(gArgs.GetArg("-metronomeAddr", DEFAULT_METRONOME_ADDR), port, host);
+	SplitHostPort(gArgs.GetArg("-metronomeAddr", GetDefaultMetronomeIP()), port, host);
 	port = gArgs.GetArg("-metronomePort", DEFAULT_METRONOME_PORT);
 	// Get credentials
 	// TODO: replace test with empty string
-	std::string strRPCUserColonPass = gArgs.GetArg("-metronomeUser", "") + ":" + gArgs.GetArg("-metronomePassword", "");
+	std::string strRPCUserColonPass = gArgs.GetArg("-metronomeUser", "metro") + ":" + gArgs.GetArg("-metronomePassword", "metronews1");
 
 	// printf("Metronome args: %s@%s:%d\n", strRPCUserColonPass.c_str(), host.c_str(), port);
 

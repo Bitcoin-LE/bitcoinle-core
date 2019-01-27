@@ -83,9 +83,17 @@ public:
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
 		consensus.nPowTargetSpacing = 630; // => new rule BitcoinLE (10 minutes + 30s)
 		consensus.nPowTargetMiningSpacing = 30; // => new rule BitcoinLE (30s mining)
+
+		// HF4
+		consensus.nPowTargetTimespan_HF4 = 1 * 24 * 60 * 60; // two days
+		consensus.nPowTargetSpacing_HF4 = 720; // => new rule BitcoinLE (10 minutes + 2 minutes)
+		consensus.nPowTargetMiningSpacing_HF4 = 120; // => new rule BitcoinLE (2m mining)
+		consensus.nRuleChangeActivationThreshold_HF4 = 114; // 95% of 240
+		consensus.nMinerConfirmationWindow_HF4 = 120; // nPowTargetTimespan_HF4 / nPowTargetSpacing_HF4
+
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
-        consensus.nRuleChangeActivationThreshold = 1824; // 95% of 3360
+        consensus.nRuleChangeActivationThreshold = 1824; // 95% of 1920
         consensus.nMinerConfirmationWindow = 1920; // nPowTargetTimespan / nPowTargetSpacing
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008

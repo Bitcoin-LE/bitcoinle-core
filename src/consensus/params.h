@@ -12,6 +12,10 @@
 
 namespace Consensus {
 
+enum Forks {
+	HF4_BLOCK_HEIGHT = 92800
+};
+
 enum DeploymentPos
 {
     DEPLOYMENT_TESTDUMMY,
@@ -53,6 +57,8 @@ struct Params {
      */
     uint32_t nRuleChangeActivationThreshold;
     uint32_t nMinerConfirmationWindow;
+	uint32_t nRuleChangeActivationThreshold_HF4;
+	uint32_t nMinerConfirmationWindow_HF4;
     BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
     /** Proof of work parameters */
     uint256 powLimit;
@@ -61,9 +67,19 @@ struct Params {
     int64_t nPowTargetSpacing;
 	int64_t nPowTargetMiningSpacing;
     int64_t nPowTargetTimespan;
-    int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
+	int64_t nPowTargetSpacing_HF4;
+	int64_t nPowTargetMiningSpacing_HF4;
+	int64_t nPowTargetTimespan_HF4;
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
+
+	int64_t DifficultyAdjustmentInterval(int height) const {
+		if (height > Forks::HF4_BLOCK_HEIGHT) {
+			return nPowTargetTimespan_HF4 / nPowTargetSpacing_HF4;
+		}
+		return nPowTargetTimespan / nPowTargetSpacing;
+	}
+
 };
 } // namespace Consensus
 

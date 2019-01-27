@@ -17,6 +17,7 @@ class uint256;
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params&);
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params&);
 unsigned int CalculateNextWorkRequiredLE(const CBlockIndex* pindexLast, const Consensus::Params& params);
+unsigned int CalculateNextWorkRequiredLE_HF4(const CBlockIndex* pindexLast, const Consensus::Params& params);
 unsigned int CalculateNextWorkRequiredBigJump(const CBlockIndex* pindexLast, const Consensus::Params& params);
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
